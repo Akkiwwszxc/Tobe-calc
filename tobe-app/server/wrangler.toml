@@ -1,0 +1,15 @@
+name = "tobe-license"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+# Төлем жүйесі: "test" = тестілік (нақты ақша жоқ). Нақты жүйе қосылғанда өзгертіңіз.
+PROVIDER = "test"
+# Тестілік төлемге рұқсат. НАҒЫЗ САТЫЛЫМДА "0" ЕТІҢІЗ, әйтпесе кез келген адам тегін кілт алады.
+ALLOW_TEST_PAYMENTS = "1"
+# Баға пакеттері (price: теңге). Мына бағалар ҮЛГІ, өзіңіздікіне ауыстырыңыз.
+PLANS = '[{"id":"m1","months":1,"price":3000,"title":"1 ай"},{"id":"m3","months":3,"price":8000,"title":"3 ай"},{"id":"m12","months":12,"price":30000,"title":"12 ай"}]'
+
+[[kv_namespaces]]
+binding = "ORDERS"
+id = "__KV_ID__"

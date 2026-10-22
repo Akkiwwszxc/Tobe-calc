@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Кілт генераторы</title>
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#14213d;--mute:#5b6b82;--line:#d5dde8;--acc:#0b7a75;--accbg:#dff1ef}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1522;--card:#17202f;--ink:#e8eef7;--mute:#97a6bd;--line:#2a3649;--acc:#4fd1c5;--accbg:#143333}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Segoe UI",Roboto,system-ui,sans-serif}
+main{max-width:560px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:8px 0 4px}h2{font-size:16px;margin:0 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0}
+label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 10px}
+textarea{font:13px/1.35 ui-monospace,Menlo,Consolas,monospace;min-height:84px}
+button{font:inherit;padding:10px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button.pr{background:var(--acc);color:var(--bg);border-color:var(--acc);font-weight:600;width:100%;margin-top:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.note{font-size:13px;color:var(--mute);margin:6px 0}
+.err{color:#d64545;font-weight:600;min-height:20px;margin-top:8px}
+.ok{color:var(--acc)}
+.h{display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding:6px 0;font-size:14px}
+</style>
+</head>
+<body>
+<main>
+<h1>Кілт генераторы</h1>
+<p class="note">Бұл бетті тек өзіңіз пайдаланыңыз. Жеке кілтіңізді ешкімге бермеңіз.</p>
+
+<div class="card">
+<h2>1. Жеке кілт</h2>
+<textarea id="priv" placeholder="private-key.jwk.json файлының мазмұнын осында қойыңыз" spellcheck="false"></textarea>
+<label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="remember" style="width:auto"> Осы құрылғыда есте сақтау</label>
+</div>
+
+<div class="card">
+<h2>2. Кілт шығару</h2>
+<label for="nm">Клиент аты</label>
+<input id="nm" placeholder="Мысалы: Асхат">
+<label for="dc">Клиенттің құрылғы коды</label>
+<input id="dc" placeholder="XXXX-XXXX" autocapitalize="characters" spellcheck="false">
+<label for="mo">Мерзімі</label>
+<select id="mo"><option value="1">1 ай</option><option value="3">3 ай</option><option value="6">6 ай</option><option value="12">12 ай</option></select>
+<label for="ex">Аяқталу күні (қаласаңыз өзгертіңіз)</label>
+<input id="ex" type="date">
+<button class="pr" id="go" type="button">Кілт жасау</button>
+<div class="err" id="err"></div>
+<textarea id="out" readonly placeholder="Кілт осында шығады"></textarea>
+<div class="row"><button type="button" id="cp">Көшіру</button><button type="button" id="sh">Бөлісу</button></div>
+</div>
+
+<div class="card">
+<h2>Шығарылған кілттер</h2>
+<div id="hist" class="note">Әзірге жоқ</div>
+</div>
+
+<details class="card">
+<summary>Жаңа кілт жұбын жасау (қосымша)</summary>
+<p class="note">Жеке кілтіңіз жоғалса немесе басқаға көрінсе қолданыңыз. Жаңа ашық кілтті <b>www/license.js</b> ішіндегі <b>pub</b> орнына қойып, APK-ны қайта жинау керек. Ескі кілттердің барлығы жарамсыз болады.</p>
+<button type="button" id="np">Жасау</button>
+<p class="note">Жеке кілт (құпия):</p><textarea id="npPriv" readonly></textarea>
+<p class="note">Ашық кілт (license.js ішіне):</p><textarea id="npPub" readonly></textarea>
+</details>
+</main>
+
+<script>
+//<core>
+function bytesToB64u(a){var s="";for(var i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+async function makeKey(jwk,payload){
+  var k=await crypto.subtle.importKey("jwk",jwk,{name:"ECDSA",namedCurve:"P-256"},false,["sign"]);
+  var data=new TextEncoder().encode(JSON.stringify(payload));
+  var sig=new Uint8Array(await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},k,data));
+  return bytesToB64u(data)+"."+bytesToB64u(sig);
+}
+async function newPair(){
+  var kp=await crypto.subtle.generateKey({name:"ECDSA",namedCurve:"P-256"},true,["sign","verify"]);
+  var priv=await crypto.subtle.exportKey("jwk",kp.privateKey),pub=await crypto.subtle.exportKey("jwk",kp.publicKey);
+  return{priv:priv,pub:{kty:pub.kty,crv:pub.crv,x:pub.x,y:pub.y}};
+}
+//</core>
+
+(function(){
+if(typeof document==="undefined")return;
+var $=function(i){return document.getElementById(i)};
+function pad(n){return(n<10?"0":"")+n}
+function iso(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function setExp(){var d=new Date();d.setMonth(d.getMonth()+(+$("mo").value));$("ex").value=iso(d)}
+setExp();$("mo").addEventListener("change",setExp);
+try{var sv=localStorage.getItem("adm_priv");if(sv){$("priv").value=sv;$("remember").checked=true}}catch(e){}
+function hist(){return JSON.parse(localStorage.getItem("adm_hist")||"[]")}
+function drawHist(){
+  var h=[];try{h=hist()}catch(e){}
+  var el=$("hist");el.textContent="";
+  if(!h.length){el.textContent="Әзірге жоқ";return}
+  h.slice().reverse().forEach(function(x){
+    var r=document.createElement("div");r.className="h";
+    var a=document.createElement("span");a.textContent=x.n+" · "+x.d;
+    var b=document.createElement("span");b.textContent=x.e+" дейін";
+    r.appendChild(a);r.appendChild(b);el.appendChild(r);
+  });
+}
+drawHist();
+$("go").addEventListener("click",async function(){
+  $("err").textContent="";$("out").value="";
+  var jwk;
+  try{jwk=JSON.parse($("priv").value.trim());if(!jwk.d)throw 0}catch(e){$("err").textContent="Жеке кілт дұрыс емес";return}
+  var d=$("dc").value.toUpperCase().replace(/[^0-9A-Z]/g,"");
+  if(d.length!==8){$("err").textContent="Құрылғы коды 8 таңба болуы керек (XXXX-XXXX)";return}
+  var e=$("ex").value;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(e)){$("err").textContent="Күнді таңдаңыз";return}
+  var n=$("nm").value.trim();
+  try{
+    var key=await makeKey(jwk,{v:1,n:n,d:d,e:e});
+    $("out").value=key;
+    try{
+      if($("remember").checked)localStorage.setItem("adm_priv",$("priv").value.trim());else localStorage.removeItem("adm_priv");
+      var h=hist();h.push({n:n||"—",d:d.slice(0,4)+"-"+d.slice(4),e:e});localStorage.setItem("adm_hist",JSON.stringify(h.slice(-100)));drawHist();
+    }catch(x){}
+  }catch(x){$("err").textContent="Кілт жасау қатесі: жеке кілтті тексеріңіз"}
+});
+$("cp").addEventListener("click",function(){
+  var t=$("out").value;if(!t)return;
+  if(navigator.clipboard)navigator.clipboard.writeText(t).catch(function(){$("out").select();document.execCommand("copy")});
+  else{$("out").select();document.execCommand("copy")}
+});
+$("sh").addEventListener("click",function(){
+  var t=$("out").value;if(!t)return;
+  if(navigator.share)navigator.share({text:t}).catch(function(){});else $("cp").click();
+});
+$("np").addEventListener("click",async function(){
+  var p=await newPair();$("npPriv").value=JSON.stringify(p.priv);$("npPub").value=JSON.stringify(p.pub);
+});
+})();
+</script>
+</body>
+</html>
