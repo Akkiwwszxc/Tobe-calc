@@ -3,12 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1b1c1e">
 <title>Төбе калькуляторы</title>
 <style>
-:root{--bg:#eef2f6;--card:#fff;--ink:#14213d;--mute:#5b6b82;--line:#d5dde8;--acc:#0b7a75;--accbg:#dff1ef;--sum:#14213d;--sumink:#fff;
+:root{color-scheme:dark;--bg:#1b1c1e;--card:#26272a;--ink:#eceff3;--mute:#a3abb5;--line:#3d4046;--acc:#4aa3ff;--accbg:#1f3550;--sum:#ffab00;--sumink:#1b1c1e;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1522;--card:#17202f;--ink:#e8eef7;--mute:#97a6bd;--line:#2a3649;--acc:#4fd1c5;--accbg:#143333;--sum:#e8eef7;--sumink:#0e1522}}
-:root[data-theme="dark"]{--bg:#0e1522;--card:#17202f;--ink:#e8eef7;--mute:#97a6bd;--line:#2a3649;--acc:#4fd1c5;--accbg:#143333;--sum:#e8eef7;--sumink:#0e1522}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Segoe UI",Roboto,system-ui,sans-serif}
 main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
@@ -56,10 +55,12 @@ button:disabled{opacity:.4;cursor:default}
 .sp{fill:#fff;stroke:var(--acc);stroke-width:2.5}.lu{fill:none;stroke:var(--acc);stroke-width:2}
 .dm{font-size:11px;fill:var(--mute);text-anchor:middle;pointer-events:none}
 .vh{fill:var(--card);stroke:var(--acc);stroke-width:2;cursor:grab}
-.v3{position:relative;height:320px;border-radius:10px;overflow:hidden;background:#1b2433;touch-action:none}
+.v3{position:relative;height:320px;border-radius:10px;overflow:hidden;background:#1b1c1e;touch-action:none}
 .v3 canvas{display:block}
-.dpad{position:absolute;right:10px;bottom:10px;display:grid;grid-template-columns:repeat(3,40px);gap:4px}
-.dpad button{padding:0;height:40px;background:rgba(255,255,255,.85);color:#14213d;border:0;user-select:none;touch-action:none}
+.dpad{position:absolute;right:12px;bottom:calc(62px + env(safe-area-inset-bottom,0px));z-index:5;display:grid;grid-template-columns:repeat(3,48px);gap:6px}
+.dpad button{padding:0;height:48px;width:48px;border-radius:50%;background:rgba(38,39,42,.92);color:#eceff3;border:1px solid #3d4046;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;touch-action:none;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.dpad button:active{background:#4aa3ff;color:#0e1522;border-color:#4aa3ff}
+.dpad svg{width:22px;height:22px;pointer-events:none}
 .plan{margin:12px 0;break-inside:avoid}
 .planwrap{position:relative;max-width:100%}
 main.wide{max-width:980px}
@@ -115,13 +116,504 @@ details.set summary{cursor:pointer;padding:10px 0;font-weight:600}
 .shape3d{fill:var(--accbg);stroke:var(--acc);stroke-width:1.5}
 .wall3d{fill:var(--line);opacity:.55;stroke:var(--acc);stroke-width:1}
 .pr{width:100%;margin-top:10px;background:var(--acc);color:var(--bg);border-color:var(--acc);font-weight:600}
+
+/* ===== бірыңғай стиль: қараңғы, дөңгелек, сары акцент ===== */
+h1{font-size:1.65rem;font-weight:700}
+h2{font-size:1.05rem;font-weight:700;margin:26px 0 10px}
+.card,.panel,details.set,.plancard{border-radius:18px}
+input,select{border-radius:10px;padding:11px 12px}
+button{border-radius:12px;background:#2f3136;font-weight:600}
+.add{border-radius:14px;padding:12px}
+.pr{background:#ffab00;color:#1b1c1e;border-color:#ffab00;border-radius:16px;padding:15px;font-size:1.05rem;font-weight:700}
+.stepper{border-radius:14px}
+.pgnav{padding:10px 0 8px;margin-bottom:14px}
+.tabs{gap:2px;background:#2b2c2f;border-radius:26px;padding:4px;margin:0}
+.tabs button{border:0;background:transparent;border-radius:22px;padding:12px 10px;color:#c6ccd4;font-weight:600;font-size:.92rem}
+.tabs button.on{background:#fff;color:#1b1c1e}
+.total{border-radius:22px;padding:18px}
+.total td{border-top-color:rgba(27,28,30,.28)}
+.total .big{font-weight:800}
+.room .del,.cat .del,.pf .del,.ex .del{border-radius:50%;width:40px;height:40px;padding:0}
+
+/* ===== ұзақ басу мәзірі ===== */
+.cad-tools,.cad-tools .ct{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.ct.has-fly{position:relative}
+.ct.has-fly::after{content:"";position:absolute;right:2px;top:50%;margin-top:-4px;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;opacity:.75}
+.fly{position:absolute;z-index:55;min-width:230px;max-width:calc(100% - 80px);background:#2a2b2f;border:1px solid #3d4046;border-radius:16px;padding:6px;box-shadow:0 10px 28px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:2px}
+.fly button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:transparent;padding:11px 12px;border-radius:10px;color:#eceff3;font-weight:600}
+.fly button:active{background:#3a3c40}
+.fly button.on{background:#1f3550;color:#fff}
+.fly button svg{width:22px;height:22px;flex:none;pointer-events:none}
+.fly button span{flex:1;pointer-events:none}
+.fly .fk{width:22px;text-align:center;color:#4aa3ff;pointer-events:none}
+
+/* ===== CAD редакторы (қараңғы, толық экран) ===== */
+body.edfull{overflow:hidden}
+body.edfull main{max-width:none;padding:0;margin:0}
+body.edfull .pgnav{display:none}
+body.edfull #pgEd{position:fixed;inset:0;z-index:40;overflow:hidden;background:#1b1c1e;color:#eceff3;--bg:#1b1c1e;--card:#2a2b2f;--ink:#eceff3;--mute:#a3abb5;--line:#3d4046;--acc:#4aa3ff;--accbg:#1f3550;color-scheme:dark}
+.cad-top{position:absolute;left:0;right:0;top:0;z-index:30;padding:calc(8px + env(safe-area-inset-top,0px)) 10px 6px;pointer-events:none}
+.cad-top>*{pointer-events:auto}
+.cad-row{display:flex;gap:8px;align-items:center}
+.cad-sp{flex:1}
+.cb{width:46px;height:46px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;background:#3a3c40;border:0;color:#eceff3}
+.cb svg{width:24px;height:24px;pointer-events:none}
+.cb.save{width:56px;border-radius:23px;background:#ffab00;color:#1b1c1e}
+.cb-wrap{position:relative}
+#cadMenu{position:absolute;right:0;top:52px;z-index:60;min-width:230px;background:#2a2b2f;border:1px solid var(--line);border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:2px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#cadMenu button{text-align:left;border:0;background:transparent;padding:11px 12px;border-radius:8px;color:#eceff3}
+#cadMenu button:active{background:#3a3c40}
+.cad-seg{margin:10px auto 0;width:fit-content;max-width:100%;background:#2b2c2f;border:0;border-radius:24px;padding:4px}
+.cad-seg button{background:transparent;border-radius:20px;padding:10px 20px;color:#c6ccd4;font-weight:600}
+.cad-seg button.on{background:#fff;color:#1b1c1e}
+#rmdel{position:absolute;left:10px;right:10px;top:calc(130px + env(safe-area-inset-top,0px));z-index:35}
+#ed2d,#ed3d{position:absolute;inset:0}
+#ed3d{overflow:hidden;background:#1b1c1e}
+#ed3d .v3{position:absolute;inset:0;height:auto;border-radius:0;margin:0}
+#ed3d .v3 canvas{width:100%;height:100%}
+.v3err{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);padding:24px;text-align:center;color:#a3abb5;font-size:15px}
+.v3top{position:absolute;left:0;right:0;top:calc(122px + env(safe-area-inset-top,0px));display:flex;justify-content:center;z-index:6;pointer-events:none;padding:0 12px}
+.v3top select{pointer-events:auto;appearance:none;-webkit-appearance:none;width:auto;min-width:190px;max-width:100%;margin:0;background:rgba(38,39,42,.92) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a3abb5' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center/18px;color:#eceff3;border:1px solid #3d4046;border-radius:999px;padding:11px 40px 11px 18px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.v3gain{position:absolute;left:12px;bottom:calc(62px + env(safe-area-inset-bottom,0px));width:calc(100% - 208px);min-width:130px;height:48px;z-index:5;display:flex;align-items:center;gap:10px;padding:0 16px;background:rgba(38,39,42,.92);border:1px solid #3d4046;border-radius:999px;color:#a3abb5;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.v3gain svg{width:22px;height:22px;flex:none}
+.v3gain input{flex:1;min-width:0;width:100%;margin:0;accent-color:#4aa3ff;background:transparent}
+.v3hint{position:absolute;left:12px;right:12px;width:fit-content;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5;max-width:calc(100% - 24px);margin:0 auto;text-align:center;font-size:12px;color:#a3abb5;background:rgba(27,28,30,.72);border-radius:8px;padding:2px 8px;pointer-events:none}
+.cad{position:absolute;inset:0}
+.cad-canvas{position:absolute;left:0;right:0;top:calc(122px + env(safe-area-inset-top,0px));bottom:86px;padding-left:58px;display:flex;align-items:center;justify-content:center}
+.cad .planwrap{width:100%}
+.cad .plan{margin:0}
+.cad .plan svg{max-height:100%;overflow:visible}
+.cad-tools{position:absolute;left:8px;top:calc(130px + env(safe-area-inset-top,0px));z-index:20;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;border-radius:30px;background:#2b2c2f;max-height:calc(100% - 230px - env(safe-area-inset-top,0px));overflow:auto;scrollbar-width:none}
+.cad-tools::-webkit-scrollbar{display:none}
+.ct{width:44px;height:44px;border-radius:50%;padding:0;border:0;background:transparent;color:#d8dde3;display:flex;align-items:center;justify-content:center;flex:none}
+.ct svg{width:24px;height:24px;pointer-events:none}
+.ct.on{background:#4aa3ff;color:#0e1522}
+.ct.sel.on{background:#fff;color:#1b1c1e}
+.ct:disabled{opacity:.35}
+.cd{width:30px;height:1px;background:#4a4d52;margin:4px 0;flex:none}
+.cad-bot{position:absolute;left:62px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:15;pointer-events:none;display:flex;flex-direction:column;gap:6px}
+.cad-bot>*{pointer-events:auto}
+.cad-bot .stat,.cad-bot .hint{margin:0;text-align:center;font-size:12px;color:#a3abb5;background:rgba(27,28,30,.72);border-radius:8px;padding:2px 8px;align-self:center}
+.cad-bar:empty{display:none}
+.cad-bar .selbar{margin:0}
+.cad-bar .grid{gap:6px}
+.cad-bar .add{margin-top:0}
+.minis{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.mini{display:flex;align-items:center;gap:2px;background:#2a2b2f;border:1px solid var(--line);border-radius:20px;padding:2px 4px 2px 10px}
+.mini span{font-size:15px;margin-right:2px}
+.mini b{min-width:22px;text-align:center}
+.mini button{width:34px;height:34px;padding:0;border-radius:50%;border:0;background:#3a3c40;font-size:18px}
+.cad.shopen .cad-canvas{bottom:50%}
+.cad.shopen .cad-bot{display:none}
+.cad-sheet{position:absolute;left:0;right:0;bottom:0;z-index:45;height:50%;display:flex;flex-direction:column;background:#26272a;border-radius:18px 18px 0 0;border-top:1px solid #3d4046;box-shadow:0 -8px 28px rgba(0,0,0,.5)}
+.sh-h{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px}
+.sh-x{width:36px;height:36px;padding:0;border-radius:50%;border:0;background:#3a3c40}
+.sh-b{overflow:auto;padding:0 14px calc(16px + env(safe-area-inset-bottom,0px))}
+.sh-b details.set{border:0;background:transparent;padding:0}
+.sh-b details.set summary{display:none}
+.rrow{display:flex;justify-content:space-between;width:100%;margin-bottom:6px;padding:12px;border-radius:10px;text-align:left}
+.rrow.on{border-color:var(--acc);background:var(--accbg);color:#fff}
+#pgEd .pl{stroke:none}
+#pgEd .vh{fill:#1b1c1e;stroke:#fff;stroke-width:2.5}
+#pgEd .wl-i{background:#2a2b2f;color:#fff;border:1px solid #5b5f66;border-radius:12px;padding:6px 2px}
+#pgEd .wl-i:focus{border-color:var(--acc);background:#1f3550}
 @media print{
-:root{--bg:#fff;--card:#fff;--ink:#000;--mute:#444;--line:#bbb}
+:root{color-scheme:light;--bg:#fff;--card:#fff;--ink:#000;--mute:#444;--line:#bbb;--acc:#0b7a75;--accbg:#dff1ef;--sum:#14213d;--sumink:#fff}
 .np{display:none!important}
 body{background:#fff}.card{border:0;padding:0}main{padding:0}
 }
 </style>
-<script src="license.js"></script>
+<script>
+/* ===== ЛИЦЕНЗИЯ / ЖАЗЫЛЫМ: баптаулар (pub, api, contact, price) осы блоктың басында ===== */
+(function () {
+"use strict";
+
+/* ===================== БАПТАУЛАР ===================== */
+var LIC = {
+  // Ашық кілт (тек тексеру үшін). Жеке кілт қосымшада ЖОҚ.
+  pub: {"kty":"EC","crv":"P-256","x":"BF7u-PKDolKIa5e9flAPfAXbaBxBYbyCofhSdE9THAg","y":"u_T11t0Mj5me7aELR4L3sV9G_CuwUTqhIBIIh-sb9sI"},
+  // Лицензия кілтін алу туралы мәтін, құлыптау экранында көрсетіледі.
+  // Мысалы: "Kaspi: +7 7XX XXX XX XX · WhatsApp: +7 7XX XXX XX XX"
+  // Лицензия серверінің мекенжайы (Cloudflare Worker орнатылған соң қойыңыз), мысалы:
+  // "https://tobe-license.СІЗДІҢ-ПОЧТА.workers.dev". Бос болса, тек қолмен кілт енгізіледі.
+  api: "",
+  contact: "",
+  // Мысалы: "Айына 3 000 ₸"
+  price: ""
+};
+/* ====================================================== */
+
+var LS_KEY = "tobe_lic", LS_SEEN = "tobe_ls", LS_DID = "tobe_did";
+var G = (typeof globalThis !== "undefined") ? globalThis : window;
+
+function b64uToBytes(s) {
+  s = String(s).replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  var b = atob(s), a = new Uint8Array(b.length);
+  for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i);
+  return a;
+}
+function normCode(c) { return String(c || "").toUpperCase().replace(/[^0-9A-Z]/g, ""); }
+function fmtCode(c) { return c.slice(0, 4) + "-" + c.slice(4); }
+function pad(n) { return (n < 10 ? "0" : "") + n; }
+function fmtDate(ms) { var d = new Date(ms); return pad(d.getDate()) + "." + pad(d.getMonth() + 1) + "." + d.getFullYear(); }
+
+async function sha8(id) {
+  var h = await G.crypto.subtle.digest("SHA-256", new TextEncoder().encode("tobe|" + id));
+  var a = new Uint8Array(h), s = "";
+  for (var i = 0; i < 4; i++) s += ("0" + a[i].toString(16)).slice(-2);
+  return s.toUpperCase();
+}
+
+async function verifyKey(key, code, now) {
+  if (!G.crypto || !G.crypto.subtle) return { ok: false, err: "Бұл ортада тексеру мүмкін емес" };
+  key = String(key || "").replace(/\s+/g, "");
+  var parts = key.split(".");
+  var bad = { ok: false, err: "Кілт форматы қате" };
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return bad;
+  var data, sig, p;
+  try {
+    data = b64uToBytes(parts[0]);
+    sig = b64uToBytes(parts[1]);
+    p = JSON.parse(new TextDecoder().decode(data));
+  } catch (e) { return bad; }
+  if (sig.length !== 64) return bad;
+  var good = false;
+  try {
+    var pk = await G.crypto.subtle.importKey("jwk", LIC.pub, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+    good = await G.crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, pk, sig, data);
+  } catch (e) { return { ok: false, err: "Кілтті тексеру қатесі" }; }
+  if (!good) return { ok: false, err: "Кілт жарамсыз" };
+  if (!p || p.v !== 1 || typeof p.e !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(p.e)) return bad;
+  if (normCode(p.d) !== code) return { ok: false, err: "Бұл кілт басқа құрылғыға арналған" };
+  var exp = new Date(p.e + "T23:59:59").getTime();
+  if (!(exp > 0)) return bad;
+  if (now > exp) return { ok: false, expired: true, name: p.n || "", exp: exp, err: "Жазылым мерзімі аяқталды (" + fmtDate(exp) + ")" };
+  return { ok: true, name: p.n || "", exp: exp, left: Math.ceil((exp - now) / 864e5) };
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { verifyKey: verifyKey, sha8: sha8, LIC: LIC, normCode: normCode };
+}
+if (typeof document === "undefined" || !document.documentElement) return;
+
+/* ===================== ИНТЕРФЕЙС ===================== */
+var html = document.documentElement;
+html.classList.add("lic-lock"); // тексерілгенше қосымша жабық
+var LS_ORD = "tobe_ord";
+
+var st = document.createElement("style");
+st.textContent =
+  "html.lic-lock main{display:none!important}" +
+  "#licBox{position:fixed;inset:0;z-index:99999;background:var(--bg);color:var(--ink);overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:16px}" +
+  "#licBox .lc{width:100%;max-width:460px;margin:6vh 0 24px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}" +
+  "#licBox h2{margin:0 0 6px;font-size:20px}" +
+  "#licBox p{margin:6px 0;color:var(--mute);font-size:14px}" +
+  "#licBox .code{font:700 26px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:2px;text-align:center;padding:12px;margin:10px 0 6px;border:1px dashed var(--acc);border-radius:8px;background:var(--accbg);color:var(--ink);user-select:all}" +
+  "#licBox textarea{width:100%;min-height:96px;font:13px/1.35 ui-monospace,Menlo,Consolas,monospace;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 10px;resize:vertical}" +
+  "#licBox button{font:inherit;padding:10px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}" +
+  "#licBox button.pr{background:#ffab00;color:#1b1c1e;border-color:#ffab00;font-weight:700;width:100%;margin-top:10px;border-radius:14px}" +
+  "#licBox button.plan{width:100%;margin-top:8px;background:#ffab00;color:#1b1c1e;border-color:#ffab00;font-weight:700;padding:14px 16px;display:flex;justify-content:space-between;border-radius:16px}" +
+  "#licBox .test{margin:8px 0;padding:8px 10px;border-radius:8px;background:#fff4d6;color:#7a5200;font-size:13px;font-weight:600}" +
+  "#licBox details{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}" +
+  "#licBox summary{cursor:pointer;color:var(--mute);font-size:14px}" +
+  "#licBox .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}" +
+  "#licBox .msg{min-height:20px;margin:8px 0 0;font-size:14px;font-weight:600}" +
+  "#licBox ol{margin:8px 0 8px 18px;padding:0;color:var(--mute);font-size:14px}";
+document.head.appendChild(st);
+
+var renewing = false, box = null, codeEl, msgEl, taEl, closeEl, plansEl, manualEl, introEl;
+var devCode = "", polling = null, polled = false, claiming = false, planData = null;
+
+async function getCode() {
+  if (devCode) return devCode;
+  var id = "";
+  try {
+    var C = G.Capacitor;
+    if (C && C.Plugins && C.Plugins.Device) {
+      var r = await C.Plugins.Device.getId();
+      id = (r && (r.identifier || r.uuid)) || "";
+    }
+  } catch (e) {}
+  if (!id) {
+    try {
+      id = localStorage.getItem(LS_DID);
+      if (!id) {
+        id = (G.crypto && G.crypto.randomUUID) ? G.crypto.randomUUID() : String(Math.random()).slice(2) + Date.now();
+        localStorage.setItem(LS_DID, id);
+      }
+    } catch (e) { id = "fallback"; }
+  }
+  devCode = await sha8(id);
+  return devCode;
+}
+
+function effectiveNow() {
+  var n = Date.now(), s = 0;
+  try { s = +localStorage.getItem(LS_SEEN) || 0; } catch (e) {}
+  if (n > s) { try { localStorage.setItem(LS_SEEN, String(n)); } catch (e) {} } else n = s;
+  return n;
+}
+
+function copyText(t) {
+  function fb() {
+    var a = document.createElement("textarea");
+    a.value = t; a.style.cssText = "position:fixed;opacity:0";
+    document.body.appendChild(a); a.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    a.remove();
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).catch(fb);
+  else fb();
+}
+
+function setMsg(t, good) {
+  if (!msgEl) return;
+  msgEl.textContent = t || "";
+  msgEl.style.color = good ? "var(--acc)" : "#d64545";
+}
+
+/* ---------- сервермен байланыс ---------- */
+function api(path, opts) {
+  if (!LIC.api) return Promise.reject(new Error("noapi"));
+  var ctl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, 12000);
+  opts = opts || {}; opts.signal = ctl.signal;
+  return fetch(LIC.api.replace(/\/+$/, "") + path, opts).then(function (r) {
+    return r.json().then(function (j) { clearTimeout(t); j._http = r.status; return j; });
+  }, function (e) { clearTimeout(t); throw e; });
+}
+
+function openUrl(u) {
+  try {
+    var C = G.Capacitor;
+    if (C && C.Plugins && C.Plugins.Browser) { C.Plugins.Browser.open({ url: u }); return; }
+  } catch (e) {}
+  window.open(u, "_blank");
+}
+
+function getOrd() { try { return JSON.parse(localStorage.getItem(LS_ORD) || "null"); } catch (e) { return null; } }
+
+async function applyKey(k) {
+  var code = await getCode();
+  var r = await verifyKey(k, code, effectiveNow());
+  if (!r.ok) return r;
+  try { localStorage.setItem(LS_KEY, k); }
+  catch (e) { return { ok: false, err: "Кілтті сақтау мүмкін болмады" }; }
+  return r;
+}
+
+function finish() {
+  stopPoll();
+  try { localStorage.removeItem(LS_ORD); } catch (e) {}
+  renewing = false;
+  setMsg("Белсендірілді ✓", true);
+  check();
+}
+
+async function claimOrder() {
+  if (!LIC.api) return "";
+  var ord = getOrd();
+  if (!ord) return "";
+  var code = await getCode();
+  if (ord.device !== code) return "";
+  try {
+    var c = await api("/claim?order=" + ord.id + "&device=" + code);
+    if (c.status === "paid") return c.key;
+    if (c._http === 404) { try { localStorage.removeItem(LS_ORD); } catch (e) {} }
+  } catch (e) {}
+  return "";
+}
+
+async function pollOnce() {
+  if (polled) return;
+  polled = true;
+  try {
+    var k = await claimOrder();
+    if (k) { var r = await applyKey(k); if (r.ok) finish(); }
+  } catch (e) {}
+  polled = false;
+}
+function startPoll() {
+  stopPoll();
+  var n = 0;
+  polling = setInterval(function () {
+    if (++n > 400) { // ~20 минут
+      stopPoll();
+      setMsg("Төлем расталмады. Төлесеңіз, қосымшаны қайта ашыңыз: кілт автоматты түседі.", false);
+      return;
+    }
+    pollOnce();
+  }, 3000);
+}
+function stopPoll() { if (polling) { clearInterval(polling); polling = null; } }
+
+// Қосымша жабық күйде ашылғанда: төленген тапсырыс немесе серверде жарамды лицензия бар ма
+async function autoClaim() {
+  if (!LIC.api || claiming) return;
+  claiming = true;
+  try {
+    var key = await claimOrder();
+    if (!key) {
+      var code = await getCode();
+      var s = await api("/restore?device=" + code);
+      if (s.status === "active") key = s.key;
+    }
+    if (key) { var r = await applyKey(key); if (r.ok) finish(); }
+  } catch (e) {}
+  claiming = false;
+}
+
+async function pay(id) {
+  setMsg("Төлем беті ашылуда…", true);
+  try {
+    var code = await getCode();
+    var r = await api("/order", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ device: code, plan: id }) });
+    if (!r.order || !r.payUrl) {
+      setMsg(r.error === "provider_not_configured" ? "Төлем әзірге қосылмаған" : "Тапсырыс жасалмады", false);
+      return;
+    }
+    try { localStorage.setItem(LS_ORD, JSON.stringify({ id: r.order, device: code })); } catch (e) {}
+    openUrl(r.payUrl);
+    setMsg("Төлемді аяқтап, осында қайтыңыз: кілт автоматты түседі…", true);
+    startPoll();
+  } catch (e) {
+    setMsg("Серверге қосылу мүмкін болмады. Интернетті тексеріңіз", false);
+  }
+}
+
+async function loadPlans() {
+  plansEl.textContent = "";
+  if (!LIC.api) { plansEl.hidden = true; manualEl.open = true; manualEl.querySelector("summary").hidden = true; introEl.textContent = "Қосымшаны пайдалану үшін лицензия кілтін енгізіңіз."; return; }
+  plansEl.hidden = false;
+  try {
+    var d = planData || (planData = await api("/plans"));
+    if (!d.plans || !d.plans.length) throw new Error("empty");
+    if (d.mode === "test") {
+      var tb = document.createElement("div"); tb.className = "test";
+      tb.textContent = "ТЕСТ РЕЖИМІ: нақты төлем жоқ, төлем беті тек тексеру үшін.";
+      plansEl.appendChild(tb);
+    }
+    d.plans.forEach(function (p) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "plan";
+      var a = document.createElement("span"); a.textContent = p.title;
+      var c = document.createElement("span"); c.textContent = Number(p.price).toLocaleString("ru-RU") + " ₸";
+      b.appendChild(a); b.appendChild(c);
+      b.addEventListener("click", function () { pay(p.id); });
+      plansEl.appendChild(b);
+    });
+  } catch (e) {
+    planData = null;
+    var rb = document.createElement("button");
+    rb.type = "button"; rb.textContent = "Пакеттерді жүктеу мүмкін болмады. Қайталау";
+    rb.addEventListener("click", loadPlans);
+    plansEl.appendChild(rb);
+  }
+}
+
+function build() {
+  box = document.createElement("div");
+  box.id = "licBox";
+  box.innerHTML =
+    '<div class="lc">' +
+    '<h2>Жазылым қажет</h2>' +
+    '<p id="licIntro">Қосымшаны пайдалану үшін жазылымды таңдаңыз.</p>' +
+    '<div id="licPlans"></div>' +
+    '<div class="msg" id="licMsg"></div>' +
+    '<details id="licManual"><summary>Кілтім бар (қолмен белсендіру)</summary>' +
+    '<ol><li>Төмендегі құрылғы кодын сатушыға жіберіңіз.</li><li>Алған кілтті өріске қойып, «Белсендіру» басыңыз.</li></ol>' +
+    '<div class="code" id="licCode">…</div>' +
+    '<div class="row"><button type="button" id="licCopy">Кодты көшіру</button></div>' +
+    '<p id="licContact" style="text-align:center"></p>' +
+    '<textarea id="licKey" placeholder="Кілтті осында қойыңыз" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>' +
+    '<button type="button" class="pr" id="licGo">Белсендіру</button></details>' +
+    '<div class="row" style="margin-top:10px"><button type="button" id="licClose" hidden>Жабу</button></div>' +
+    '</div>';
+  document.body.appendChild(box);
+  codeEl = box.querySelector("#licCode");
+  msgEl = box.querySelector("#licMsg");
+  taEl = box.querySelector("#licKey");
+  closeEl = box.querySelector("#licClose");
+  plansEl = box.querySelector("#licPlans");
+  manualEl = box.querySelector("#licManual");
+  introEl = box.querySelector("#licIntro");
+  var ct = [LIC.price, LIC.contact].filter(Boolean).join(" · ");
+  box.querySelector("#licContact").textContent = ct;
+  box.querySelector("#licCopy").addEventListener("click", function () {
+    copyText(devCode); setMsg("Код көшірілді", true);
+  });
+  closeEl.addEventListener("click", hide);
+  box.querySelector("#licGo").addEventListener("click", activate);
+}
+
+function show(msg, closable) {
+  var first = !box;
+  if (first) build();
+  renewing = !!closable;
+  box.style.display = "flex";
+  closeEl.hidden = !closable;
+  if (msg || first) setMsg(msg || "", false);
+  getCode().then(function (c) { codeEl.textContent = fmtCode(c); });
+  if (first || !plansEl.children.length) loadPlans();
+}
+function hide() { renewing = false; stopPoll(); if (box) box.style.display = "none"; }
+
+async function activate() {
+  var k = taEl.value.replace(/\s+/g, "");
+  if (!k) { setMsg("Кілтті енгізіңіз", false); return; }
+  var r = await applyKey(k);
+  if (!r.ok) { setMsg(r.err, false); return; }
+  taEl.value = "";
+  finish();
+}
+
+function showInfo(r) {
+  var el = document.getElementById("licInfo");
+  if (!el) {
+    var host = document.querySelector("#pgCalc .sub");
+    if (!host || !host.parentNode) return;
+    el = document.createElement("div");
+    el.id = "licInfo";
+    el.style.cssText = "font-size:13px;margin:-4px 0 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap";
+    host.parentNode.insertBefore(el, host.nextSibling);
+  }
+  el.style.color = r.left <= 5 ? "#b45309" : "var(--mute)";
+  el.textContent = "";
+  var t = document.createElement("span");
+  t.textContent = "Жазылым" + (r.name ? ": " + r.name : "") + " · " + fmtDate(r.exp) + " дейін (" + r.left + " күн)";
+  var b = document.createElement("button");
+  b.type = "button"; b.textContent = "Ұзарту";
+  b.style.cssText = "font:inherit;padding:3px 10px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer";
+  b.addEventListener("click", function () { show("", true); });
+  el.appendChild(t); el.appendChild(b);
+}
+
+async function check() {
+  var code = await getCode(), key = "";
+  try { key = localStorage.getItem(LS_KEY) || ""; } catch (e) {}
+  var r = key ? await verifyKey(key, code, effectiveNow()) : { ok: false };
+  if (r.ok) {
+    html.classList.remove("lic-lock");
+    if (!renewing) hide();
+    showInfo(r);
+  } else {
+    html.classList.add("lic-lock");
+    show(key ? r.err : "", false);
+    autoClaim();
+  }
+}
+
+function start() { check(); }
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
+else start();
+document.addEventListener("visibilitychange", function () {
+  if (document.hidden) return;
+  check();
+  if (box && box.style.display !== "none") pollOnce();
+});
+setInterval(check, 5 * 60 * 1000);
+})();
+</script>
 </head>
 <body>
 <main>
@@ -172,15 +664,13 @@ body{background:#fff}.card{border:0;padding:0}main{padding:0}
 </div>
 </div>
 <div id="pgEd" hidden>
-<h1>Редактор</h1>
-<p class="sub">Төбенің 2D сызбасы мен 3D көрінісі.</p>
-<div class="card edbar"><select id="v3room" aria-label="Бөлме"></select><div class="seg" id="vtabs"><button type="button" data-vw="2d" class="on">2D</button><button type="button" data-vw="3d">3D</button></div><button type="button" class="ibtn" id="rmbtn" data-rmask="1" aria-label="Бөлмені өшіру">🗑</button></div>
-<div id="rmdel"></div>
+<div class="cad-top"><div class="cad-row"><button type="button" class="cb" data-back="1" aria-label="Артқа"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><span class="cad-sp"></span><button type="button" class="cb" data-sheet="rooms" aria-label="Бөлмелер"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button><button type="button" class="cb" data-sheet="panel" aria-label="Параметрлер"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button><div class="cb-wrap"><button type="button" class="cb" data-menu="1" aria-label="Қосымша"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/></svg></button><div id="cadMenu" hidden><button type="button" data-radd="1">＋ Бөлме қосу</button><button type="button" data-rmask="1">🗑 Бөлмені өшіру</button><button type="button" data-clean="1">Артық нүктелерді тазалау</button></div></div><button type="button" class="cb save" data-save="1" aria-label="Сақтау"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l4 4v14H5z"/><path d="M8 3v6h8V3"/><rect x="8" y="14" width="8" height="7"/></svg></button></div><div class="seg cad-seg" id="vtabs"><button type="button" data-vw="an">Өлшем</button><button type="button" data-vw="2d" class="on">Сызба</button><button type="button" data-vw="3d">3D</button></div></div><div id="rmdel"></div>
 <div id="ed2d"></div>
-<div id="ed3d" hidden><div class="card">
-<label for="v3gain">Жарық қарқыны</label><input id="v3gain" type="range" min="0" max="100" step="5" style="width:100%;margin:4px 0 8px">
-<div class="v3" id="v3" style="margin-top:8px"><div class="dpad"><span></span><button type="button" data-k="w">▲</button><span></span><button type="button" data-k="a">◀</button><button type="button" data-k="s">▼</button><button type="button" data-k="d">▶</button></div></div>
-<div class="note">Айналдыру: сүйреңіз · жүру: W A S D (немесе батырмалар)</div></div>
+<div id="ed3d" hidden>
+<div class="v3" id="v3"><div class="dpad"><span></span><button type="button" data-k="w" aria-label="Алға"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button><span></span><button type="button" data-k="a" aria-label="Солға"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><button type="button" data-k="s" aria-label="Артқа"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><button type="button" data-k="d" aria-label="Оңға"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></div></div>
+<div class="v3top"><select id="v3room" aria-label="Бөлме"></select></div>
+<label class="v3gain" for="v3gain" title="Жарық қарқыны"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg><input id="v3gain" type="range" min="0" max="100" step="5" aria-label="Жарық қарқыны"></label>
+<div class="v3hint">Айналдыру: сүйреңіз · жүру: W A S D (немесе батырмалар)</div>
 </div>
 </div>
 </div>
@@ -193,13 +683,16 @@ body{background:#fff}.card{border:0;padding:0}main{padding:0}
 </main>
 
 <script src="lib/three.min.js"></script>
+<script>window.THREE||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>')</script>
 <script src="lib/html2canvas.min.js"></script>
+<script>window.html2canvas||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>')</script>
 <script src="lib/jspdf.umd.min.js"></script>
+<script>window.jspdf||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>')</script>
 <script>
 var D={
 cat:[{n:"Мат",p:3000},{n:"Глянец",p:3500},{n:"Сатин",p:3800}],
 ptypes:[{n:"Қабырғалық (стеновой)",p:1200},{n:"Теңіз профилі (теневой)",p:2200},{n:"Парашют профилі",p:2600}],
-cp:8000,spot:2500,mont:1500,roll:3.2,trk:4500,glow:3000,cw:6000,gr:{snap:true,step:.1,ortho:true},sh:7,client:"",company:"",
+cp:8000,spot:2500,mont:1500,roll:3.2,trk:4500,glow:3000,cw:6000,gr:{snap:true,step:.1,ortho:true,axes:true},sh:7,client:"",company:"",
 ex:[{n:"Жарық сызығы, м",p:9000,q:0},{n:"Перде гардина, м",p:3500,q:0}],
 rooms:[{n:"Қонақ бөлме",m:1,pf:[{t:0,len:15}],
   poly:[{x:0,y:0},{x:4,y:0},{x:4,y:3.5},{x:0,y:3.5}],
@@ -306,7 +799,19 @@ function setLights(r,n){
     }
   }
 }
-var GPRE=null;
+var GPRE=null,GUIDE=null;
+function axisSnap(r,d,w,sc){
+  var g=S.gr||{};if(g.axes===false)return{x:w.x,y:w.y,gx:null,gy:null};
+  var xs=[],ys=[],bq=bbox(r.poly);xs.push((bq.minX+bq.maxX)/2);ys.push((bq.minY+bq.maxY)/2);
+  r.lights.forEach(function(p,i){if(!(d.kind==="light"&&i===d.idx)){xs.push(p.x);ys.push(p.y)}});
+  if(r.chand&&r.chand.on)(r.chand.pts||[]).forEach(function(p,i){if(!(d.kind==="chand"&&i===d.idx)){xs.push(p.x);ys.push(p.y)}});
+  (r.trks||[]).forEach(function(t,i){if(!(d.kind==="trk"&&i===d.idx)){xs.push(t.cx);ys.push(t.cy)}});
+  var th=10/sc,gx=null,gy=null,bx=th,by=th;
+  xs.forEach(function(v){var q=Math.abs(v-w.x);if(q<bx){bx=q;gx=v}});
+  ys.forEach(function(v){var q=Math.abs(v-w.y);if(q<by){by=q;gy=v}});
+  return{x:gx!==null?+gx.toFixed(3):w.x,y:gy!==null?+gy.toFixed(3):w.y,gx:gx!==null?+gx.toFixed(3):null,gy:gy!==null?+gy.toFixed(3):null};
+}
+function setGuide(ri,ax,fx,fy){GUIDE={ri:ri,x:(ax.gx!==null&&Math.abs(fx-ax.gx)<.006)?ax.gx:null,y:(ax.gy!==null&&Math.abs(fy-ax.gy)<.006)?ax.gy:null};if(GUIDE.x===null&&GUIDE.y===null)GUIDE=null}
 var WK=["gl","cw"];
 function glLen(r,k){k=k||"gl";var n=r.poly.length,t=0;(r[k]||[]).forEach(function(g){var A=r.poly[g.e],B=r.poly[(g.e+1)%n];if(A&&B)t+=Math.hypot(B.x-A.x,B.y-A.y)*(g.b-g.a)});return t}
 function glMerge(r,e,k){
@@ -358,6 +863,23 @@ function closeDraw(ri){
   if(r.chand&&r.chand.pts)r.chand.pts=r.chand.pts.map(function(p){return clampToPoly(r.poly,p.x,p.y)});
   drawRooms();
 }
+function newTrk(r,k){
+  var bb=bbox(r.poly),tc=clampToPoly(r.poly,(bb.minX+bb.maxX)/2,(bb.minY+bb.maxY)/2+r.trks.length*.5);
+  r.trks.push({o:"x",cx:tc.x,cy:tc.y,len:Math.min(2.5,Math.max(.5,bb.maxX-bb.minX-.4)),k:k==="r"?"r":"s",c:k==="r"?"w":"b",ll:.6});
+}
+function trkRow(i,t,ti){
+  var rec=t.k==="r",wh=(t.c||(rec?"w":"b"))==="w",at='data-trki="'+i+'" data-tj="'+ti+'"',ll=+t.ll===.3?"0.3":"0.6";
+  return'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">'+
+    '<div class="grid" style="grid-template-columns:1fr 1fr auto;align-items:end">'+
+    '<div><label>Түрі</label><select '+at+' data-trkk="k"><option value="s"'+(rec?"":" selected")+'>Накладной</option><option value="r"'+(rec?" selected":"")+'>Встроенный</option></select></div>'+
+    '<div><label>Бағыты</label><select '+at+' data-trkk="o"><option value="x"'+(t.o==="y"?"":" selected")+'>Ұзындығы бойымен</option><option value="y"'+(t.o==="y"?" selected":"")+'>Ені бойымен</option></select></div>'+
+    '<button class="del" type="button" data-dtrk="'+i+'-'+ti+'" aria-label="Трек жою">✕</button></div>'+
+    '<div class="grid" style="grid-template-columns:'+(rec?'1fr 1fr 1fr':'1fr 1fr')+';margin-top:6px">'+
+    '<div><label>Ұзындығы, м</label><input type="number" inputmode="decimal" min="0.3" step="0.1" value="'+t.len+'" '+at+' data-trkk="len"></div>'+
+    '<div><label>Трек түсі</label><select '+at+' data-trkk="c"><option value="b"'+(wh?"":" selected")+'>Қара</option><option value="w"'+(wh?" selected":"")+'>Ақ</option></select></div>'+
+    (rec?'<div><label>Шам ұзындығы</label><select '+at+' data-trkk="ll"><option value="0.3"'+(ll==="0.3"?" selected":"")+'>30 см</option><option value="0.6"'+(ll==="0.6"?" selected":"")+'>60 см</option></select></div>':'')+
+    '</div><div class="hint" style="margin-top:4px">'+(rec?'Төбеге ендіріледі · ұзын сызықтық шамдар (30 / 60 см)':'Төбеге бекітіледі · шамдар салбырап тұрады')+'</div></div>';
+}
 function trkSeg(r,t){
   var b=bbox(r.poly),l=b.maxX-b.minX,w=b.maxY-b.minY,cc=clampToPoly(r.poly,t.cx,t.cy),a,c,ln;
   if(t.o==="y"){ln=Math.max(.1,Math.min(+t.len||0,w-.2))/2;a=clampToPoly(r.poly,cc.x,cc.y-ln);c=clampToPoly(r.poly,cc.x,cc.y+ln)}
@@ -365,6 +887,24 @@ function trkSeg(r,t){
   return{a:a,b:c,len:Math.hypot(c.x-a.x,c.y-a.y)};
 }
 function planWidth(ri){var el=$("plan"+ri),w=el&&el.clientWidth;return Math.max(300,Math.min(Math.round(w)||320,980))}
+function planMaxH(W){
+  var h=Math.round(W*.9);
+  if(document.body.classList.contains("edfull")){var ah=Math.round((window.innerHeight||700)-270);if(E.sheet)ah=Math.round((window.innerHeight||700)*.5-182);h=Math.max(220,Math.min(ah,Math.round(W*2.2)))}
+  return h;
+}
+function offPoly(pts,d){
+  var n=pts.length,A=0,k;
+  for(k=0;k<n;k++){var p=pts[k],q=pts[(k+1)%n];A+=p[0]*q[1]-q[0]*p[1]}
+  var sg=A>=0?1:-1,out=[];
+  for(k=0;k<n;k++){
+    var a=pts[(k-1+n)%n],b=pts[k],c=pts[(k+1)%n];
+    var d1x=b[0]-a[0],d1y=b[1]-a[1],l1=Math.hypot(d1x,d1y)||1,d2x=c[0]-b[0],d2y=c[1]-b[1],l2=Math.hypot(d2x,d2y)||1;
+    var n1x=-d1y/l1*sg,n1y=d1x/l1*sg,n2x=-d2y/l2*sg,n2y=d2x/l2*sg,den=1+n1x*n2x+n1y*n2y;
+    if(den<.25)den=.25;
+    out.push([b[0]+(n1x+n2x)*d/den,b[1]+(n1y+n2y)*d/den]);
+  }
+  return out;
+}
 function planSvg2D(r,ri,opt){
   opt=opt||{};
   var poly=r.poly,bb;
@@ -373,22 +913,49 @@ function planSvg2D(r,ri,opt){
   else if(dr){var b0=bbox(poly);bb={minX:0,minY:0,maxX:Math.max(6,Math.ceil(b0.maxX)+1),maxY:Math.max(5,Math.ceil(b0.maxY)+1)}}
   else{bb=bbox(poly);if(!opt.ro)bb={minX:bb.minX-.5,maxX:bb.maxX+.5,minY:bb.minY-.5,maxY:bb.maxY+.5}}
   var pw=Math.max(bb.maxX-bb.minX,.1),ph=Math.max(bb.maxY-bb.minY,.1);
-  var W=opt.ro?320:(opt.fr&&opt.fr.W?opt.fr.W:planWidth(ri)),P=30,Hmax=opt.ro?220:Math.round(W*.9),sc=opt.fr?opt.fr.sc:Math.min((W-2*P)/pw,Hmax/ph),H=ph*sc+2*P;
+  var W=opt.ro?320:(opt.fr&&opt.fr.W?opt.fr.W:planWidth(ri)),P=30,Hmax=opt.ro?220:planMaxH(W),sc=opt.fr?opt.fr.sc:Math.min((W-2*P)/pw,Hmax/ph),H=ph*sc+2*P;
   var X=function(v){return P+(v-bb.minX)*sc},Y=function(v){return P+(v-bb.minY)*sc};
   var pts=poly.map(function(p){return X(p.x).toFixed(1)+","+Y(p.y).toFixed(1)}).join(" ");
   var ed=!opt.ro&&r.mode==="pts",ld=!opt.ro&&r.mode==="lights";
   var out='<svg '+(opt.ro?'':'data-ri="'+ri+'" ')+'viewBox="0 0 '+W+' '+H.toFixed(0)+'" role="img" aria-label="'+esc(r.n)+' төбе сызбасы">';
   if(!opt.ro){
     var gd=(S.gr&&S.gr.step)||.1,gh="",lb=sc>=14?1:5;while(gd*sc<8)gd*=5;
-    for(var gi=Math.ceil(bb.minX/gd-1e-9);gi*gd<=bb.maxX+1e-9;gi++){var gv=+(gi*gd).toFixed(3),mj=Math.abs(gv-Math.round(gv))<1e-6;
-      gh+='<line x1="'+X(gv).toFixed(1)+'" y1="'+Y(bb.minY).toFixed(1)+'" x2="'+X(gv).toFixed(1)+'" y2="'+Y(bb.maxY).toFixed(1)+'" stroke="#7a8b99" stroke-opacity="'+(mj?.55:.22)+'" stroke-width=".7"/>';
-      if(mj&&gv%lb===0)gh+='<text x="'+X(gv).toFixed(1)+'" y="24" font-size="7" text-anchor="middle" fill="#7a8b99">'+gv+'</text>'}
-    for(var gj=Math.ceil(bb.minY/gd-1e-9);gj*gd<=bb.maxY+1e-9;gj++){var gw=+(gj*gd).toFixed(3),mk=Math.abs(gw-Math.round(gw))<1e-6;
-      gh+='<line x1="'+X(bb.minX).toFixed(1)+'" y1="'+Y(gw).toFixed(1)+'" x2="'+X(bb.maxX).toFixed(1)+'" y2="'+Y(gw).toFixed(1)+'" stroke="#7a8b99" stroke-opacity="'+(mk?.55:.22)+'" stroke-width=".7"/>';
-      if(mk&&gw%lb===0)gh+='<text x="26" y="'+(Y(gw)+2.5).toFixed(1)+'" font-size="7" text-anchor="end" fill="#7a8b99">'+gw+'</text>'}
+    var full=document.body.classList.contains("edfull"),ex=full?4000:0,gox=(X(0)-.35).toFixed(2),goy=(Y(0)-.35).toFixed(2),mm=Math.max(1,Math.ceil(8/sc)),mw=mm*sc,mn=gd*sc,gid="gp"+ri,showMin=mn<mw-1e-6;
+    var gpat=function(id,w,op){var t=w.toFixed(3);return'<pattern id="'+id+'" patternUnits="userSpaceOnUse" x="'+gox+'" y="'+goy+'" width="'+t+'" height="'+t+'"><path d="M.35 0V'+t+'M0 .35H'+t+'" fill="none" stroke="#7a8b99" stroke-opacity="'+op+'" stroke-width=".7"/></pattern>'};
+    gh+='<defs>'+(showMin?gpat(gid+"n",mn,.16):'')+gpat(gid+"m",mw,.38)+'</defs>';
+    var gra='x="'+(-ex)+'" y="'+(-ex)+'" width="'+(W+2*ex)+'" height="'+(H+2*ex)+'"';
+    if(showMin)gh+='<rect '+gra+' fill="url(#'+gid+'n)"/>';
+    gh+='<rect '+gra+' fill="url(#'+gid+'m)"/>';
+    for(var gi=Math.ceil(bb.minX/gd-1e-9);gi*gd<=bb.maxX+1e-9;gi++){var gv=+(gi*gd).toFixed(3);
+      if(Math.abs(gv-Math.round(gv))<1e-6&&gv%lb===0)gh+='<text x="'+X(gv).toFixed(1)+'" y="24" font-size="7" text-anchor="middle" fill="#7a8b99">'+gv+'</text>'}
+    for(var gj=Math.ceil(bb.minY/gd-1e-9);gj*gd<=bb.maxY+1e-9;gj++){var gw=+(gj*gd).toFixed(3);
+      if(Math.abs(gw-Math.round(gw))<1e-6&&gw%lb===0)gh+='<text x="26" y="'+(Y(gw)+2.5).toFixed(1)+'" font-size="7" text-anchor="end" fill="#7a8b99">'+gw+'</text>'}
     out+='<g pointer-events="none">'+gh+'</g>';
   }
-  out+='<polygon class="pl" style="fill:'+esc(r.color||"#dff1ef")+';fill-opacity:'+(dr?.12:.4)+'" points="'+pts+'"/>';
+  var cadBand=!opt.ro&&!dr;
+  if(cadBand){
+    var po=poly.map(function(p){return[X(p.x),Y(p.y)]}),bwd=Math.max(9,Math.min(16,Math.round(sc*.1)));
+    bwd=Math.min(bwd,Math.min(pw,ph)*sc/5);
+    var pi2=offPoly(po,bwd),pf=function(a){return a.map(function(q){return q[0].toFixed(1)+","+q[1].toFixed(1)}).join(" ")},pd=function(a){return"M"+a.map(function(q){return q[0].toFixed(1)+","+q[1].toFixed(1)}).join("L")+"Z"};
+    out+='<g pointer-events="none"><path d="'+pd(po)+pd(pi2)+'" fill="#44474b" fill-rule="evenodd"/>'+
+      '<polygon points="'+pf(pi2)+'" fill="'+esc(r.color||"#ffffff")+'" fill-opacity=".07"/>'+
+      '<polygon points="'+pf(po)+'" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="miter"/>'+
+      '<polygon points="'+pf(pi2)+'" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="miter"/></g>';
+    if(r.mode==="pts"){
+      var sgp=0;po.forEach(function(q,k){var q2=po[(k+1)%po.length];sgp+=q[0]*q2[1]-q2[0]*q[1]});sgp=sgp>=0?1:-1;
+      if(!E.an)poly.forEach(function(A,k){
+        var B=poly[(k+1)%poly.length],dx=B.x-A.x,dy=B.y-A.y,tag=(Math.abs(dy)<.005&&Math.abs(dx)>.01)?"H":(Math.abs(dx)<.005&&Math.abs(dy)>.01)?"V":"";
+        if(!tag)return;
+        var ax=X(A.x),ay=Y(A.y),bx=X(B.x),by=Y(B.y),ex=bx-ax,ey=by-ay,el=Math.hypot(ex,ey)||1;
+        if(el<46)return;
+        var ox=dy*sgp/Math.hypot(dx,dy),oy=-dx*sgp/Math.hypot(dx,dy),sh=(k%2?1:-1)*Math.min(el*.18,60),
+            cx=(ax+bx)/2+ex/el*sh+ox*17,cy=(ay+by)/2+ey/el*sh+oy*17;
+        out+='<g pointer-events="none"><rect x="'+(cx-11).toFixed(1)+'" y="'+(cy-11).toFixed(1)+'" width="22" height="22" rx="6" fill="#2a2c30" stroke="#9aa1aa" stroke-width="1.4"/><text x="'+cx.toFixed(1)+'" y="'+(cy+4.5).toFixed(1)+'" font-size="13" font-weight="700" text-anchor="middle" fill="#e6e9ed">'+tag+'</text></g>';
+      });
+      var bq=bbox(poly),ccx=X((bq.minX+bq.maxX)/2),ccy=Y((bq.minY+bq.maxY)/2);
+      out+='<g pointer-events="none" stroke="#e6e9ed" stroke-width="1.4"><line x1="'+(ccx-12).toFixed(1)+'" y1="'+ccy.toFixed(1)+'" x2="'+(ccx+12).toFixed(1)+'" y2="'+ccy.toFixed(1)+'"/><line x1="'+ccx.toFixed(1)+'" y1="'+(ccy-12).toFixed(1)+'" x2="'+ccx.toFixed(1)+'" y2="'+(ccy+12).toFixed(1)+'"/><circle cx="'+ccx.toFixed(1)+'" cy="'+ccy.toFixed(1)+'" r="5" fill="#e6e9ed" stroke="none"/></g>';
+    }
+  }else out+='<polygon class="pl" style="fill:'+esc(r.color||"#dff1ef")+';fill-opacity:'+(dr?.12:.14)+'" points="'+pts+'"/>';
   (function(){
     var n=poly.length,cxm=0,cym=0;
     poly.forEach(function(p){cxm+=p.x;cym+=p.y});cxm/=n;cym/=n;
@@ -417,13 +984,18 @@ function planSvg2D(r,ri,opt){
   if(r.chand&&r.chand.on)(r.chand.pts||[]).forEach(function(p,ci){var cx=X(p.x).toFixed(1),cy=Y(p.y).toFixed(1),dd=ld?' data-drag="chand" data-ci="'+ci+'"':'';
     out+='<circle class="lu"'+dd+(ld?pickSt("chand",ci,ri):'')+' cx="'+cx+'" cy="'+cy+'" r="12"/><circle class="sp"'+dd+' cx="'+cx+'" cy="'+cy+'" r="3"/>'});
   if(ed)poly.forEach(function(p,i){var cx=X(p.x).toFixed(1),cy=Y(p.y).toFixed(1);
-    out+='<circle data-drag="vtx" data-vi="'+i+'" cx="'+cx+'" cy="'+cy+'" r="18" fill="transparent"/><circle class="vh" data-drag="vtx" data-vi="'+i+'"'+(E.sel===i&&ri===E.i?' style="fill:var(--acc);fill-opacity:.55;stroke:var(--acc);stroke-width:3"':'')+' cx="'+cx+'" cy="'+cy+'" r="10"/><text class="dm" style="fill:var(--ink)" x="'+cx+'" y="'+(Y(p.y)+4).toFixed(1)+'">'+(i+1)+'</text>'});
+    out+='<circle data-drag="vtx" data-vi="'+i+'" cx="'+cx+'" cy="'+cy+'" r="18" fill="transparent"/><circle class="vh" data-drag="vtx" data-vi="'+i+'"'+(E.sel===i&&ri===E.i?' style="fill:var(--acc);stroke:#fff;stroke-width:3"':'')+' cx="'+cx+'" cy="'+cy+'" r="9"/>'+(E.sheet==="panel"?'<text class="dm" style="fill:'+(E.sel===i&&ri===E.i?'#0e1522':'#fff')+';font-size:10px" x="'+cx+'" y="'+(Y(p.y)+3.5).toFixed(1)+'">'+(i+1)+'</text>':'')});
   if(dr&&r.draw&&r.draw.length){
     var dq=r.draw;
     out+='<polyline points="'+dq.map(function(p){return X(p.x).toFixed(1)+","+Y(p.y).toFixed(1)}).join(" ")+'" fill="none" stroke="#0a7d6e" stroke-width="2" pointer-events="none"/>';
     dq.forEach(function(p,i){
       if(i){var q=dq[i-1];out+='<text class="dm" x="'+X((p.x+q.x)/2).toFixed(1)+'" y="'+(Y((p.y+q.y)/2)-5).toFixed(1)+'">'+fmt(Math.hypot(p.x-q.x,p.y-q.y),2)+'</text>'}
       out+='<circle cx="'+X(p.x).toFixed(1)+'" cy="'+Y(p.y).toFixed(1)+'" r="'+(i?4:8)+'" fill="'+(i?'#0a7d6e':'#2ecc71')+'" pointer-events="none"/>'});
+  }
+  if(!opt.ro&&GUIDE&&GUIDE.ri===ri){
+    var gdx=document.body.classList.contains("edfull")?4000:0;
+    if(GUIDE.x!=null)out+='<line x1="'+X(GUIDE.x).toFixed(1)+'" y1="'+(-gdx)+'" x2="'+X(GUIDE.x).toFixed(1)+'" y2="'+(H+gdx).toFixed(0)+'" stroke="#4aa3ff" stroke-width="1.2" stroke-dasharray="6 4" pointer-events="none"/>';
+    if(GUIDE.y!=null)out+='<line x1="'+(-gdx)+'" y1="'+Y(GUIDE.y).toFixed(1)+'" x2="'+(W+gdx)+'" y2="'+Y(GUIDE.y).toFixed(1)+'" stroke="#4aa3ff" stroke-width="1.2" stroke-dasharray="6 4" pointer-events="none"/>';
   }
   out+='</svg>';
   return{svg:out,sc:sc,bb:bb,P:P,W:W};
@@ -434,12 +1006,16 @@ function showPage(pg){
   $("pgCalc").hidden=pg!=="calc";$("pgCalcB").hidden=pg!=="calc";$("pgEd").hidden=pg!=="ed";
   Array.prototype.forEach.call(document.querySelectorAll("[data-pg]"),function(b){b.className=b.getAttribute("data-pg")===pg?"on":""});
   document.querySelector("main").classList.toggle("wide",pg==="ed");
-  if(pg==="ed")setView(E.vw);
+  document.body.classList.toggle("edfull",pg==="ed");
+  if(pg!=="ed"){E.sheet=null;var mn=$("cadMenu");if(mn)mn.hidden=true}
+  if(pg==="ed")setView(E.an?"an":E.vw);
   try{window.scrollTo(0,0)}catch(x){}
 }
 function setView(vw){
+  var tab=vw;E.an=(vw==="an");if(E.an)vw="2d";
   E.vw=vw;$("ed2d").hidden=vw!=="2d";$("ed3d").hidden=vw!=="3d";
-  Array.prototype.forEach.call(document.querySelectorAll("[data-vw]"),function(b){b.className=b.getAttribute("data-vw")===vw?"on":""});
+  Array.prototype.forEach.call(document.querySelectorAll("[data-vw]"),function(b){b.className=b.getAttribute("data-vw")===tab?"on":""});
+  if(E.an){var ra=S.rooms[E.i];if(ra&&ra.mode!=="pts"){ra.mode="pts";ra.draw=null}}
   if(vw==="2d")drawEditor();
   if(vw==="3d"){try{window.dispatchEvent(new Event("resize"))}catch(x){}sched3D()}
 }
@@ -533,28 +1109,42 @@ function renderRmDel(){
 function pickSt(k,i,ri){return(E.pick&&E.pick.k===k&&E.pick.i===i&&ri===E.i)?' style="stroke:#e74c3c;stroke-width:3.5"':''}
 function toolBtn(r,i,m,ic,label){return'<button type="button" class="tool'+(r.mode===m?' on':'')+'" data-mode="'+m+'" data-ri="'+i+'"><span class="ic">'+ic+'</span>'+label+'</button>'}
 function stepRow(label,sub,cnt,minus,plus){return'<div class="srow"><div><b>'+label+'</b><span class="sub">'+sub+'</span></div><div class="stepper"><button type="button" class="stp" '+minus+' aria-label="Азайту">−</button><span class="stpn">'+cnt+'</span><button type="button" class="stp" '+plus+' aria-label="Қосу">+</button></div></div>'}
+var ICO={
+  sel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 3l14 7-6.5 2-2 7z"/></svg>',
+  rect:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3.5" y="6" width="17" height="12" rx="1.5"/></svg>',
+  pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-5L16 4l4 4L9 19z"/><path d="M13.5 6.5l4 4"/></svg>',
+  cut:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M8 7.8L20 17M8 16.2L20 7"/></svg>',
+  light:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>',
+  glow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 18h18"/><path d="M6 14v-3M12 14V8M18 14v-3"/></svg>',
+  curt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M6 10v9M10 10v9M14 10v9M18 10v9" stroke-dasharray="2.5 2.5"/></svg>',
+  undo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h9a6 6 0 0 1 0 12h-3"/></svg>',
+  redo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9h-9a6 6 0 0 0 0 12h3"/></svg>'
+};
+function ctB(r,i,m,ic,label,cls,fly){return'<button type="button" class="ct'+(cls?' '+cls:'')+(fly?' has-fly':'')+(r.mode===m?' on':'')+'" data-mode="'+m+'" data-ri="'+i+'"'+(fly?' data-fly="'+fly+'"':'')+' aria-label="'+label+'">'+ic+'</button>'}
+function miniStep(lbl,cnt,minus,plus){return'<div class="mini"><span>'+lbl+'</span><button type="button" '+minus+' aria-label="Азайту">−</button><b>'+cnt+'</b><button type="button" '+plus+' aria-label="Қосу">+</button></div>'}
 function drawEditor(){renderRmDel();
   var box=$("ed2d");if(!box)return;
   var i=E.i,r=S.rooms[i];if(!r){box.innerHTML="";return}
   var hint=r.mode==="draw"?"Тордың нүктелерін ретімен басыңыз. Бірінші (жасыл) нүктені қайта басыңыз — контур жабылады.":
     r.mode==="curtain"?"Скрытый еврокарниз: қабырғаны басыңыз — бүкіл қабырға, бойымен сүйреңіз — бөлігі. Күлгін жолақты басыңыз — өшеді.":
     r.mode==="glow"?"Қабырғаны басыңыз — бүкіл қабырға. Қабырға бойымен сүйреңіз — бөлігі. Сары жолақты басыңыз — өшеді.":
-    r.mode==="lights"?"Шамды, люстраны немесе тректі басып таңдаңыз, сүйреп жылжытыңыз.":
-    "Нүктені сүйреңіз · жиекті басып нүкте қосыңыз · қабырғаның санын басып ұзындығын жазыңыз.";
-  var panel;
-  if(r.mode==="pts")panel=selBar(i)+vtxList(i)+'<button type="button" class="add" data-vclean="'+i+'" style="margin-top:8px">Артық нүктелерді тазалау</button>'+(E.msg?'<div class="hint">'+E.msg+'</div>':'');
-  else if(r.mode==="lights")panel=selBar(i)+
-    stepRow('Шам','● спот',r.lights.length,'data-dellight="'+i+'"','data-addlight="'+i+'"')+
-    stepRow('Люстра','◎ орталық',r.chand.pts.length,'data-chandm="'+i+'"','data-chandp="'+i+'"')+
-    stepRow('Трек','━ шинопровод',r.trks.length,'data-trkm="'+i+'"','data-trkp="'+i+'"')+
-    (r.trks.length?r.trks.map(function(t,ti){return '<div class="grid" style="grid-template-columns:1fr 1fr auto;margin-top:6px;align-items:end">'+'<div><label>Бағыты</label><select data-trki="'+i+'" data-tj="'+ti+'" data-trkk="o"><option value="x"'+(t.o==="y"?"":" selected")+'>Ұзындығы бойымен</option><option value="y"'+(t.o==="y"?" selected":"")+'>Ені бойымен</option></select></div>'+'<div><label>Ұзындығы, м</label><input type="number" inputmode="decimal" min="0.3" step="0.1" value="'+t.len+'" data-trki="'+i+'" data-tj="'+ti+'" data-trkk="len"></div>'+'<button class="del" type="button" data-dtrk="'+i+'-'+ti+'" aria-label="Трек жою">✕</button></div>';}).join(""):'')
-  else if(r.mode==="glow")panel='<div class="grid" style="grid-template-columns:1fr 1fr"><button type="button" class="add" data-glall="'+i+'">Барлық қабырға</button><button type="button" class="add" data-glclr="'+i+'">Тазалау</button></div><div class="hint" id="gt'+i+'"></div>';
-  else if(r.mode==="curtain")panel='<div class="grid" style="grid-template-columns:1fr 1fr"><button type="button" class="add" data-cwall="'+i+'">Барлық қабырға</button><button type="button" class="add" data-cwclr="'+i+'">Тазалау</button></div><div class="hint" id="ct'+i+'"></div>';
-  else panel='<div class="grid" style="grid-template-columns:1fr 1fr 1fr"><button type="button" class="add" data-dclose="'+i+'">Жабу ✓</button><button type="button" class="add" data-dundo="'+i+'">Артқа ↶</button><button type="button" class="add" data-dcancel="'+i+'">Болдырмау</button></div><div class="hint" id="dh'+i+'">Нүкте: '+((r.draw||[]).length)+'</div>';
-  var set='<details class="set"'+(E.setOpen?' open':'')+' data-setd="1"><summary>⚙ Баптаулар: түс, биіктік, пішін, тор</summary><div class="room" style="margin-top:6px">'+
+    r.mode==="lights"?"Шамды, люстраны немесе тректі басып таңдаңыз, сүйреп жылжытыңыз — басқа шамдардың және бөлме ортасының осьтеріне тіркеледі.":
+    E.an?"Қабырғаның өлшемін басып, жаңа санды жазыңыз.":
+    "Бұрышты сүйреңіз · жиекті басып нүкте қосыңыз · ▸ белгілі батырманы ұзақ басыңыз.";
+  if(E.msg)hint=E.msg;if(E.toast){hint=E.toast;E.toast=""}
+  var bar="",sheetP="";
+  if(r.mode==="pts"){bar=selBar(i);sheetP=vtxList(i)+'<button type="button" class="add" data-vclean="'+i+'" style="margin-top:8px">Артық нүктелерді тазалау</button>'}
+  else if(r.mode==="lights"){
+    bar=selBar(i)+'<div class="minis">'+miniStep("💡",r.lights.length,'data-dellight="'+i+'"','data-addlight="'+i+'"')+miniStep("◎",r.chand.pts.length,'data-chandm="'+i+'"','data-chandp="'+i+'"')+miniStep("━",r.trks.length,'data-trkm="'+i+'"','data-trkp="'+i+'"')+'</div>';
+    sheetP='<div style="margin-bottom:8px">'+r.trks.map(function(t,ti){return trkRow(i,t,ti)}).join("")+'</div>';
+  }
+  else if(r.mode==="glow")bar='<div class="grid" style="grid-template-columns:1fr 1fr"><button type="button" class="add" data-glall="'+i+'">Барлық қабырға</button><button type="button" class="add" data-glclr="'+i+'">Тазалау</button></div><div class="hint" id="gt'+i+'"></div>';
+  else if(r.mode==="curtain")bar='<div class="grid" style="grid-template-columns:1fr 1fr"><button type="button" class="add" data-cwall="'+i+'">Барлық қабырға</button><button type="button" class="add" data-cwclr="'+i+'">Тазалау</button></div><div class="hint" id="ct'+i+'"></div>';
+  else bar='<div class="grid" style="grid-template-columns:1fr 1fr 1fr"><button type="button" class="add" data-dclose="'+i+'">Жабу ✓</button><button type="button" class="add" data-dundo="'+i+'">Артқа ↶</button><button type="button" class="add" data-dcancel="'+i+'">Болдырмау</button></div><div class="hint" id="dh'+i+'">Нүкте: '+((r.draw||[]).length)+'</div>';
+  var set='<details class="set"'+' open'+' data-setd="1"><summary>⚙ Баптаулар: түс, биіктік, пішін, тор</summary><div class="room" style="margin-top:6px">'+
     '<div><label>Түсі</label><input type="color" value="'+r.color+'" data-i="'+i+'" data-k="color" style="padding:2px;height:40px"></div>'+
     '<div><label>Биіктігі, м</label><input type="number" inputmode="decimal" step="0.05" min="1.8" value="'+r.h+'" data-i="'+i+'" data-k="h"></div>'+
-    '<div class="full"><label>Пішіні</label><div class="grid" style="grid-template-columns:1fr 1fr 1fr">'+
+    '<div class="full" id="shapeSec"><label>Пішіні</label><div class="grid" style="grid-template-columns:1fr 1fr 1fr">'+
     '<div><label>Түрі</label><select data-di="'+i+'" data-dk="s"><option value="r"'+(r.dim.s==="l"?'':' selected')+'>Төртбұрыш</option><option value="l"'+(r.dim.s==="l"?' selected':'')+'>Г-тәрізді</option></select></div>'+
     '<div><label>Ұзындығы, м</label><input type="number" inputmode="decimal" step="0.01" min="0" value="'+rmSize(r,"l")+'" data-di="'+i+'" data-dk="l"></div>'+
     '<div><label>Ені, м</label><input type="number" inputmode="decimal" step="0.01" min="0" value="'+rmSize(r,"w")+'" data-di="'+i+'" data-dk="w"></div>'+
@@ -564,15 +1154,31 @@ function drawEditor(){renderRmDel();
     '</div></div>'+
     '<div class="full">'+
     '<div class="grid" style="grid-template-columns:1fr 1fr 1fr;align-items:end;margin:6px 0"><div><label>Тор қадамы</label><select data-gr="step">'+[.05,.1,.25,.5].map(function(v){return'<option value="'+v+'"'+(S.gr.step===v?' selected':'')+'>'+Math.round(v*100)+' см</option>'}).join("")+'</select></div><label><input type="checkbox" data-gr="snap" '+(S.gr.snap?'checked':'')+' style="width:auto;margin-right:4px">Тормен тарту</label><label><input type="checkbox" data-gr="ortho" '+(S.gr.ortho?'checked':'')+' style="width:auto;margin-right:4px">Ось бойынша</label></div>'+
+    '<label style="display:block;margin:2px 0 6px"><input type="checkbox" data-gr="axes" '+(S.gr.axes!==false?'checked':'')+' style="width:auto;margin-right:4px">Шамдарды осьтерге тіркеу</label>'+
     '</div></div></details>';
-  var h='<div class="edgrid"><div class="edmain">'+
-    '<div class="tools">'+toolBtn(r,i,"pts","📍","Нүктелер")+toolBtn(r,i,"lights","💡","Жарық")+toolBtn(r,i,"draw","✏️","Сызу")+toolBtn(r,i,"glow","✨","Подсветка")+toolBtn(r,i,"curtain","🪟","Карниз")+'</div>'+
-    '<div class="plancard"><div class="planwrap"><div class="plan" id="plan'+i+'"></div><div class="wl" id="wl'+i+'"></div>'+
-    (r.mode!=="draw"?'<div class="undo"><button type="button" data-hundo="'+i+'" aria-label="Артқа">↶</button><button type="button" data-hredo="'+i+'" aria-label="Алға">↷</button></div>':'')+
-    '</div></div>'+
-    '<div class="stat" id="einfo'+i+'"></div><div class="hint">'+hint+'</div></div>'+
-    '<div class="edside"><div class="panel">'+panel+'</div>'+set+'</div></div>';
+  var dr=r.mode==="draw";
+  var tools='<div class="cad-tools">'+
+    ctB(r,i,"pts",ICO.sel,"Таңдау / жылжыту","sel")+
+    '<button type="button" class="ct has-fly'+(E.sheet==="panel"&&E.focus==="shape"?' on':'')+'" data-fly="shape" data-sheet="panel" data-focus="shape" aria-label="Төртбұрыш / пішін">'+ICO.rect+'</button>'+
+    ctB(r,i,"draw",ICO.pen,"Бөлме сызу","","pen")+
+    '<button type="button" class="ct has-fly" data-fly="cut" data-cut="'+i+'" aria-label="Таңдалған нүктені өшіру">'+ICO.cut+'</button>'+
+    '<span class="cd"></span>'+
+    ctB(r,i,"lights",ICO.light,"Жарық","","light")+ctB(r,i,"glow",ICO.glow,"Подсветка","","glow")+ctB(r,i,"curtain",ICO.curt,"Еврокарниз","","curt")+
+    '<span class="cd"></span>'+
+    '<button type="button" class="ct" '+(dr?'data-dundo="'+i+'"':'data-hundo="'+i+'"')+' aria-label="Артқа">'+ICO.undo+'</button>'+
+    '<button type="button" class="ct" '+(dr?'disabled':'data-hredo="'+i+'"')+' aria-label="Алға">'+ICO.redo+'</button></div>';
+  var sheet="";
+  if(E.sheet==="panel")sheet='<div class="cad-sheet"><div class="sh-h"><b>'+esc(r.n)+'</b><button type="button" class="sh-x" data-sheet="" aria-label="Жабу">✕</button></div><div class="sh-b">'+sheetP+set+'</div></div>';
+  else if(E.sheet==="rooms")sheet='<div class="cad-sheet"><div class="sh-h"><b>Бөлмелер</b><button type="button" class="sh-x" data-sheet="" aria-label="Жабу">✕</button></div><div class="sh-b">'+
+    S.rooms.map(function(rm,k){return'<button type="button" class="rrow'+(k===i?' on':'')+'" data-rsel="'+k+'"><span>'+esc(rm.n)+'</span><span>'+fmt(polyArea(rm.poly),1)+' м²</span></button>'}).join("")+
+    '<button type="button" class="add" data-radd="1">＋ Бөлме қосу</button></div></div>';
+  var h='<div class="cad'+(E.sheet?' shopen':'')+'"><div class="cad-canvas"><div class="planwrap"><div class="plan" id="plan'+i+'"></div><div class="wl" id="wl'+i+'"></div></div></div>'+
+    tools+'<div class="cad-bot"><div class="stat" id="einfo'+i+'"></div><div class="hint">'+hint+'</div><div class="cad-bar">'+bar+'</div></div>'+sheet+'</div>';
+  var ob=box.querySelector(".sh-b"),sc0=ob?ob.scrollTop:0;
   E.msg="";box.innerHTML=h;renderPlan(i);
+  var nb=box.querySelector(".sh-b");
+  if(nb){if(E.focus==="shape"){var sf=box.querySelector("#shapeSec");if(sf)nb.scrollTop=Math.max(0,sf.offsetTop-nb.offsetTop-8)}else if(sc0)nb.scrollTop=sc0}
+  E.focus=null;
 }
 function drawRooms(){
   if(E.i>=S.rooms.length)E.i=Math.max(0,S.rooms.length-1);T3.ri=E.i;
@@ -684,7 +1290,7 @@ function calc(){
 
 function wallInputs(i,fr){
   var r=S.rooms[i],box=$("wl"+i);if(!box)return;
-  if(r.mode!=="pts"){box.innerHTML="";return}
+  if(r.mode!=="pts"||!E.an){box.innerHTML="";return}
   var f=fr||planFrame(i),pl=$("plan"+i),svg=pl&&pl.firstElementChild;if(!svg)return;
   var vb=(svg.getAttribute("viewBox")||"0 0 320 240").split(" "),W=+vb[2],H=+vb[3],n=r.poly.length,cxm=0,cym=0,h="";
   r.poly.forEach(function(p){cxm+=p.x;cym+=p.y});cxm/=n;cym/=n;
@@ -725,7 +1331,7 @@ function resizeRoom(i,nl,nw){
 }
 function applyShape(i){var nOld=S.rooms[i].poly.length;pushHist(S.rooms[i]);var b0=bbox(S.rooms[i].poly);S.rooms[i].dim.l=+(b0.maxX-b0.minX).toFixed(2);S.rooms[i].dim.w=+(b0.maxY-b0.minY).toFixed(2);
   var r4=S.rooms[i],d=r4.dim,l=d.l||3,w=d.w||3,a=Math.min(d.a||0,l-.1),b=Math.min(d.b||0,w-.1);
-  r4.poly=(d.s==="l"&&a>0&&b>0)?[{x:0,y:0},{x:+(l-a).toFixed(2),y:0},{x:+(l-a).toFixed(2),y:b},{x:l,y:b},{x:l,y:w},{x:0,y:w}]:[{x:0,y:0},{x:l,y:0},{x:l,y:w},{x:0,y:w}];
+  r4.poly=(d.s==="l"&&a>0&&b>0)?[{x:0,y:0},{x:+(l-a).toFixed(2),y:0},{x:+(l-a).toFixed(2),y:b},{x:l,y:b},{x:l,y:w},{x:0,y:w}].map(function(q){var o=d.o||0,fx=(o===2||o===3),fy=(o===1||o===2);return{x:fx?+(l-q.x).toFixed(2):q.x,y:fy?+(w-q.y).toFixed(2):q.y}}):[{x:0,y:0},{x:l,y:0},{x:l,y:w},{x:0,y:w}];
   r4.lights=r4.lights.map(function(p){return clampToPoly(r4.poly,p.x,p.y)});
   if(S.rooms[i].poly.length!==nOld){S.rooms[i].gl=[];S.rooms[i].cw=[]}save();drawRooms();
 }
@@ -752,7 +1358,7 @@ document.addEventListener("input",function(e){
   else if(t.getAttribute("data-di")!==null){var dd=S.rooms[t.getAttribute("data-di")].dim,dk=t.getAttribute("data-dk");dd[dk]=dk==="s"?t.value:pos(t.value)}
 
   else if(t.hasAttribute("data-gr")){var gk=t.getAttribute("data-gr");S.gr[gk]=gk==="step"?+t.value:t.checked;save();drawRooms();}
-  else if(t.hasAttribute("data-trkk")){var ti0=+t.getAttribute("data-trki"),tj0=+t.getAttribute("data-tj"),tk0=S.rooms[ti0].trks[tj0],kk0=t.getAttribute("data-trkk");tk0[kk0]=kk0==="o"?t.value:pos(t.value);renderPlan(ti0);calc();}
+  else if(t.hasAttribute("data-trkk")){var ti0=+t.getAttribute("data-trki"),tj0=+t.getAttribute("data-tj"),tk0=S.rooms[ti0].trks[tj0],kk0=t.getAttribute("data-trkk");tk0[kk0]=(kk0==="o"||kk0==="k"||kk0==="c")?t.value:pos(t.value);if(kk0==="k"&&t.value==="r"&&!tk0.ll)tk0.ll=.6;renderPlan(ti0);calc();if(kk0==="k")drawEditor();}
   else if(i!==null){
     var r=S.rooms[i];
     if(key==="n"||key==="color")r[key]=t.value;else if(key==="m")r.m=+t.value;else if(key==="h")r.h=pos(t.value)||2.6;else if(key==="lc"){setLights(r,Math.round(pos(t.value)))}
@@ -761,9 +1367,124 @@ document.addEventListener("input",function(e){
     calc();
   }
 });
+
+/* ===== ұзақ басу мәзірі ===== */
+var flyT=null,flyHeld=false,flyX=0,flyY=0;
+function SVGI(d){return'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>'}
+var LSH=['<path d="M4 5h9v5h7v9H4z"/>','<path d="M4 5h16v9h-7v5H4z"/>','<path d="M4 5h16v14h-9v-5H4z"/>','<path d="M11 5h9v14H4v-9h7z"/>'];
+var LNAME=["оң жоғары","оң төмен","сол төмен","сол жоғары"];
+function flyItems(id,r){
+  var d=r.dim||{},cur=d.s==="l"?"l"+(d.o||0):"r",it=[],g=S.gr;
+  if(id==="shape"){
+    it.push({a:"shape:r",ic:SVGI('<rect x="4" y="5" width="16" height="14" rx="1"/>'),t:"Төртбұрыш",on:cur==="r"});
+    for(var k=0;k<4;k++)it.push({a:"shape:l"+k,ic:SVGI(LSH[k]),t:"Г-тәрізді, кесік "+LNAME[k],on:cur==="l"+k});
+  }else if(id==="pen"){
+    it.push({a:"pen:draw",ic:ICO.pen,t:"Көпбұрыш сызу",on:r.mode==="draw"});
+    it.push({a:"pen:snap",ic:SVGI('<path d="M4 4h16v16H4zM4 12h16M12 4v16"/>'),t:"Тормен тарту",on:!!g.snap,chk:1});
+    it.push({a:"pen:ortho",ic:SVGI('<path d="M5 19V5h14"/>'),t:"Ось бойынша (90°)",on:!!g.ortho,chk:1});
+    it.push({a:"pen:step",ic:SVGI('<path d="M4 8h16M4 12h16M4 16h16"/>'),t:"Тор қадамы: "+Math.round((g.step||.1)*100)+" см"});
+  }else if(id==="light"){
+    it.push({a:"light:add",ic:ICO.light,t:"Шам қосу"});
+    it.push({a:"light:chand",ic:SVGI('<circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>'),t:"Люстра қосу"});
+    it.push({a:"light:trk",ic:SVGI('<path d="M4 6h16"/><path d="M8 6v6M16 6v6"/><circle cx="8" cy="15" r="2.5"/><circle cx="16" cy="15" r="2.5"/>'),t:"Накладной трек (салбыраған)"});
+    it.push({a:"light:trkr",ic:SVGI('<path d="M3 8h18v3H3z"/><path d="M6 16h5M13 16h5"/>'),t:"Встроенный трек (30/60 см)"});
+    it.push({a:"light:del",ic:SVGI('<path d="M5 12h14"/>'),t:"Соңғы шамды өшіру"});
+    it.push({a:"light:axes",ic:SVGI('<path d="M12 3v18M3 12h18" stroke-dasharray="3 2.5"/><circle cx="12" cy="12" r="2.6"/>'),t:"Осьтерге тіркеу",on:g.axes!==false,chk:1});
+  }else if(id==="glow"){
+    it.push({a:"glow:all",ic:ICO.glow,t:"Барлық қабырғаға"});
+    it.push({a:"glow:clr",ic:SVGI('<path d="M6 6l12 12M18 6L6 18"/>'),t:"Подсветканы тазалау"});
+  }else if(id==="curt"){
+    it.push({a:"curt:all",ic:ICO.curt,t:"Барлық қабырғаға"});
+    it.push({a:"curt:clr",ic:SVGI('<path d="M6 6l12 12M18 6L6 18"/>'),t:"Еврокарнизді тазалау"});
+  }else if(id==="cut"){
+    it.push({a:"cut:del",ic:ICO.cut,t:"Таңдалған нүктені өшіру"});
+    it.push({a:"cut:clean",ic:SVGI('<path d="M4 12h16"/><circle cx="12" cy="12" r="2.5"/>'),t:"Артық нүктелерді тазалау"});
+  }
+  return it;
+}
+function closeFly(){var f=document.querySelector("#ed2d .fly");if(f)f.parentNode.removeChild(f)}
+function openFly(btn){
+  closeFly();
+  var r=S.rooms[E.i];if(!r||!btn.isConnected)return;
+  var its=flyItems(btn.getAttribute("data-fly"),r);if(!its.length)return;
+  var cad=$("ed2d").querySelector(".cad");if(!cad)return;
+  var f=document.createElement("div");f.className="fly";
+  f.innerHTML=its.map(function(x){return'<button type="button" class="'+(x.on&&!x.chk?'on':'')+'" data-fa="'+x.a+'">'+x.ic+'<span>'+x.t+'</span>'+(x.chk?'<b class="fk">'+(x.on?'✓':'')+'</b>':'')+'</button>'}).join("");
+  cad.appendChild(f);
+  var cr=cad.getBoundingClientRect(),br=btn.getBoundingClientRect(),top=br.top-cr.top-6;
+  top=Math.max(8,Math.min(top,cr.height-f.offsetHeight-8));
+  f.style.top=top+"px";f.style.left=(br.right-cr.left+10)+"px";
+  if(navigator.vibrate){try{navigator.vibrate(15)}catch(e){}}
+}
+function setShape(i,v){
+  var r=S.rooms[i],d=r.dim,pS=d.s,pO=d.o||0,b0=bbox(r.poly);
+  if(v==="r")d.s="r";
+  else{d.s="l";d.o=+v.slice(1);
+    var l=b0.maxX-b0.minX,w=b0.maxY-b0.minY;
+    if(!(d.a>0))d.a=+(l*.4).toFixed(2);
+    if(!(d.b>0))d.b=+(w*.4).toFixed(2)}
+  if(d.s!==pS||(d.o||0)!==pO){r.gl=[];r.cw=[]}
+  E.toast="Пішін: "+(v==="r"?"төртбұрыш":"Г-тәрізді, кесік "+LNAME[+v.slice(1)]);
+  applyShape(i);
+}
+function flyAction(a){
+  var i=E.i,r=S.rooms[i];if(!r)return;
+  var p=a.split(":"),k=p[0],v=p[1];
+  if(k!=="cut"){E.sel=null;E.pick=null}
+  if(k==="shape"){setShape(i,v);return}
+  if(k==="pen"){
+    if(v==="draw"){r.mode="draw";r.draw=[]}
+    else if(v==="snap"){S.gr.snap=!S.gr.snap;E.toast="Тормен тарту: "+(S.gr.snap?"қосулы":"өшірулі")}
+    else if(v==="ortho"){S.gr.ortho=!S.gr.ortho;E.toast="Ось бойынша: "+(S.gr.ortho?"қосулы":"өшірулі")}
+    else if(v==="step"){var st=[.05,.1,.25,.5],ix=st.indexOf(S.gr.step);S.gr.step=st[(ix+1)%st.length];E.toast="Тор қадамы: "+Math.round(S.gr.step*100)+" см"}
+    save();drawRooms();return;
+  }
+  if(k==="light"&&v==="axes"){S.gr.axes=S.gr.axes===false;E.toast="Осьтерге тіркеу: "+(S.gr.axes?"қосулы":"өшірулі");save();drawEditor();return}
+  if(k==="light"){
+    r.mode="lights";r.draw=null;
+    var bb=bbox(r.poly),cx=(bb.minX+bb.maxX)/2,cy=(bb.minY+bb.maxY)/2;
+    if(v==="add"){pushHist(r);r.lights.push(clampToPoly(r.poly,cx+(Math.random()-.5)*.6,cy+(Math.random()-.5)*.6))}
+    else if(v==="chand"){pushHist(r);r.chand.on=true;r.chand.pts.push(clampToPoly(r.poly,cx+(Math.random()-.5)*.4,cy+(Math.random()-.5)*.4))}
+    else if(v==="trk"||v==="trkr"){pushHist(r);newTrk(r,v==="trkr"?"r":"s");E.toast=v==="trkr"?"Встроенный трек қосылды (30/60 см шамдар)":"Накладной трек қосылды (салбыраған шамдар)"}
+    else if(v==="del"){if(r.lights.length){pushHist(r);r.lights.pop()}}
+    drawRooms();return;
+  }
+  if(k==="glow"){r.mode="glow";r.draw=null;pushHist(r);r.gl=v==="all"?r.poly.map(function(q,n){return{e:n,a:0,b:1}}):[];drawRooms();return}
+  if(k==="curt"){r.mode="curtain";r.draw=null;pushHist(r);r.cw=v==="all"?r.poly.map(function(q,n){return{e:n,a:0,b:1}}):[];drawRooms();return}
+  if(k==="cut"){
+    if(v==="clean"){cleanVerts(i);return}
+    if(E.sel!=null&&r.poly.length>3)delVertex(i,E.sel);
+    else{E.toast=r.poly.length<=3?"Үш нүктеден кем болмайды":"Алдымен бұрышты (дөңгелекті) басып таңдаңыз";drawEditor()}
+  }
+}
+document.addEventListener("pointerdown",function(e){
+  flyHeld=false;
+  var inFly=e.target.closest&&e.target.closest(".fly");
+  if(!inFly)closeFly();
+  if(flyT){clearTimeout(flyT);flyT=null}
+  var b=e.target.closest&&e.target.closest("#ed2d .ct[data-fly]");
+  if(!b||inFly)return;
+  flyX=e.clientX;flyY=e.clientY;
+  flyT=setTimeout(function(){flyT=null;flyHeld=true;openFly(b)},450);
+},true);
+document.addEventListener("pointermove",function(e){if(flyT&&Math.hypot(e.clientX-flyX,e.clientY-flyY)>12){clearTimeout(flyT);flyT=null}},true);
+["pointerup","pointercancel"].forEach(function(n){document.addEventListener(n,function(){if(flyT){clearTimeout(flyT);flyT=null}},true)});
+document.addEventListener("contextmenu",function(e){if(e.target.closest&&e.target.closest("#ed2d .cad-tools"))e.preventDefault()});
 document.addEventListener("click",function(e){
+  if(flyHeld){flyHeld=false;if(e.target.closest&&e.target.closest("#ed2d .ct[data-fly]"))return}
+  var fa=e.target.closest&&e.target.closest("[data-fa]");if(fa){var fav=fa.getAttribute("data-fa");closeFly();flyAction(fav);return}
   var pgb=e.target.getAttribute&&e.target.getAttribute("data-pg");if(pgb){showPage(pgb);return}
   var vwb=e.target.getAttribute&&e.target.getAttribute("data-vw");if(vwb){setView(vwb);return}
+  if(e.target.getAttribute&&e.target.getAttribute("data-back")){showPage("calc");return}
+  var cmn=$("cadMenu"),tgm=e.target.getAttribute&&e.target.getAttribute("data-menu");
+  if(cmn){if(tgm){cmn.hidden=!cmn.hidden;return}if(!cmn.hidden)cmn.hidden=true}
+  if(e.target.getAttribute&&e.target.getAttribute("data-sheet")!==null){var shv=e.target.getAttribute("data-sheet");E.sheet=(shv&&E.sheet!==shv)||(shv==="panel"&&e.target.getAttribute("data-focus"))?shv:null;E.focus=e.target.getAttribute("data-focus")||null;if(E.vw!=="2d")setView("2d");else drawEditor();return}
+  if(e.target.getAttribute&&e.target.getAttribute("data-save")){save();E.toast="Сақталды ✓";drawEditor();return}
+  if(e.target.getAttribute&&e.target.getAttribute("data-cut")!==null){var rcu=S.rooms[E.i];if(E.sel!=null&&rcu.poly.length>3)delVertex(E.i,E.sel);else{E.toast=rcu.poly.length<=3?"Үш нүктеден кем болмайды":"Алдымен бұрышты (дөңгелекті) басып таңдаңыз";drawEditor()}return}
+  if(e.target.getAttribute&&e.target.getAttribute("data-clean")){cleanVerts(E.i);return}
+  var rsl=e.target.closest&&e.target.closest("[data-rsel]");
+  if(rsl){var sel3=$("v3room");sel3.value=rsl.getAttribute("data-rsel");sel3.dispatchEvent(new Event("change"));E.sheet=null;drawEditor();return}
+  if(e.target.getAttribute&&e.target.getAttribute("data-radd")){$("add").click();E.i=S.rooms.length-1;T3.ri=E.i;E.sel=null;E.pick=null;E.sheet=null;drawRooms();return}
   var edb=e.target.getAttribute&&e.target.getAttribute("data-edit");if(edb!==null&&edb!==undefined){E.i=+edb;E.sel=null;E.pick=null;E.delAsk=false;T3.ri=E.i;drawRooms();showPage("ed");return}
   var de=e.target.getAttribute("data-de");
   if(de!==null){S.ex.splice(+de,1);drawEx();calc()}
@@ -818,7 +1539,7 @@ document.addEventListener("click",function(e){
   var chm=e.target.getAttribute("data-chandm");
   if(chm!==null){var rch2=S.rooms[+chm];if(rch2.chand.pts.length){pushHist(rch2);rch2.chand.pts.pop();if(!rch2.chand.pts.length)rch2.chand.on=false;drawRooms();}}
   var trp=e.target.getAttribute("data-trkp");
-  if(trp!==null){var rt=S.rooms[+trp];pushHist(rt);var bt=bbox(rt.poly),tc=clampToPoly(rt.poly,(bt.minX+bt.maxX)/2,(bt.minY+bt.maxY)/2+rt.trks.length*.5);rt.trks.push({o:"x",cx:tc.x,cy:tc.y,len:Math.min(2.5,Math.max(.5,bt.maxX-bt.minX-.4))});drawRooms();}
+  if(trp!==null){var rt=S.rooms[+trp];pushHist(rt);newTrk(rt,"s");drawRooms();}
   var trm=e.target.getAttribute("data-trkm");
   if(trm!==null){var rt2=S.rooms[+trm];if(rt2.trks.length){pushHist(rt2);rt2.trks.pop();drawRooms();}}
   var dtrk=e.target.getAttribute("data-dtrk");
@@ -915,23 +1636,23 @@ document.addEventListener("pointerdown",function(e){
   if(r.mode!=="pts")return;
   var fr=planFrame(ri),w=toWorld(ri,e,fr),best=0,bd=1e9;
   for(var i=0;i<r.poly.length;i++){var d=distSeg(w,r.poly[i],r.poly[(i+1)%r.poly.length]);if(d<bd){bd=d;best=i}}
-  pushHist(r);var np=snapW(w,fr.sc,null,null);
-  if(bd*fr.sc<14){glSplit(r,best);r.poly.splice(best+1,0,np)}else{glSplit(r,r.poly.length-1);r.poly.push(np)}
-  drawRooms();
+  if(E.an)return;
+  if(bd*fr.sc<14){pushHist(r);var np=snapW(w,fr.sc,null,null);glSplit(r,best);r.poly.splice(best+1,0,np);drawRooms()}
+  else if(E.sel!=null||E.pick){E.sel=null;E.pick=null;drawEditor()}
 });
 document.addEventListener("pointermove",function(e){
   if(!dragState)return;
   if(dragState.kind==="glow"){glowMove(e);return}
   var d=dragState,r=S.rooms[d.ri],w=toWorld(d.ri,e,d.fr),bb=d.fr.bb;
-  if(d.kind==="trk"){var tt=r.trks[d.idx],cp=snapW({x:w.x+d.off.x,y:w.y+d.off.y},d.fr.sc,null,null),bt2=bbox(r.poly),hf=Math.max(.1,Math.min(+tt.len||0,(tt.o==="y"?bt2.maxY-bt2.minY:bt2.maxX-bt2.minX)-.2))/2;
+  if(d.kind==="trk"){var tt=r.trks[d.idx],cp0=snapW({x:w.x+d.off.x,y:w.y+d.off.y},d.fr.sc,null,null),axt=axisSnap(r,d,cp0,d.fr.sc),cp={x:axt.x,y:axt.y},bt2=bbox(r.poly),hf=Math.max(.1,Math.min(+tt.len||0,(tt.o==="y"?bt2.maxY-bt2.minY:bt2.maxX-bt2.minX)-.2))/2;
     if(tt.o==="y")cp.y=Math.min(Math.max(cp.y,bt2.minY+hf),bt2.maxY-hf);else cp.x=Math.min(Math.max(cp.x,bt2.minX+hf),bt2.maxX-hf);
-    var cl=clampToPoly(r.poly,cp.x,cp.y);tt.cx=+cl.x.toFixed(2);tt.cy=+cl.y.toFixed(2);d.moved=true;renderPlan(d.ri,d.fr);return}
+    var cl=clampToPoly(r.poly,cp.x,cp.y);tt.cx=+cl.x.toFixed(3);tt.cy=+cl.y.toFixed(3);setGuide(d.ri,axt,tt.cx,tt.cy);d.moved=true;renderPlan(d.ri,d.fr);return}
   w=snapW(w,d.fr.sc,null,d.kind==="vtx"?[r.poly[(d.idx+r.poly.length-1)%r.poly.length],r.poly[(d.idx+1)%r.poly.length]]:null);
   if(d.kind==="vtx"){r.poly[d.idx]={x:+Math.min(Math.max(w.x,bb.minX),bb.maxX).toFixed(2),y:+Math.min(Math.max(w.y,bb.minY),bb.maxY).toFixed(2)}}
-  else{var pt=clampToPoly(r.poly,w.x,w.y);if(d.kind==="light")r.lights[d.idx]=pt;else r.chand.pts[d.idx]=pt;}
+  else{var axl=axisSnap(r,d,w,d.fr.sc),pt=clampToPoly(r.poly,axl.x,axl.y);if(d.kind==="light")r.lights[d.idx]=pt;else r.chand.pts[d.idx]=pt;setGuide(d.ri,axl,pt.x,pt.y)}
   d.moved=true;renderPlan(d.ri,d.fr);
 });
-function endDrag(){if(!dragState)return;var d=dragState;dragState=null;if(d.kind==="glow"){glowFinish(d);return}
+function endDrag(){if(!dragState)return;var d=dragState;dragState=null;GUIDE=null;if(d.kind==="glow"){glowFinish(d);return}
   if(d.kind==="light"||d.kind==="chand"||d.kind==="trk"){
     var rp=S.rooms[d.ri],tg=d.kind==="light"?rp.lights[d.idx]:d.kind==="chand"?rp.chand.pts[d.idx]:rp.trks[d.idx];
     if(tg&&d.sx!==undefined&&Math.hypot((d.kind==="trk"?tg.cx:tg.x)-d.sx,(d.kind==="trk"?tg.cy:tg.y)-d.sy)<.07){
@@ -992,10 +1713,11 @@ function sched3D(){clearTimeout(T3.timer);T3.timer=setTimeout(build3D,200)}
 function init3D(){
   if(T3.ready)return true;
   var box=$("v3");
-  if(typeof THREE==="undefined"){if(!T3.err){T3.err=1;box.insertAdjacentHTML("afterbegin",'<div style="color:#fff;padding:16px">3D кітапханасы жүктелмеді.</div>')}return false}
-  T3.r=new THREE.WebGLRenderer({antialias:true});T3.r.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  if(typeof THREE==="undefined"){if(!T3.err){T3.err=1;box.insertAdjacentHTML("afterbegin",'<div class="v3err">3D кітапханасы жүктелмеді.</div>')}return false}
+  try{T3.r=new THREE.WebGLRenderer({antialias:true})}catch(e){if(!T3.err){T3.err=1;box.insertAdjacentHTML("afterbegin",'<div class="v3err">Бұл құрылғыда немесе браузерде 3D (WebGL) қолжетімсіз.</div>')}return false}
+  T3.r.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
   box.insertBefore(T3.r.domElement,box.firstChild);
-  T3.sc=new THREE.Scene();T3.sc.background=new THREE.Color(0x1b2433);
+  T3.sc=new THREE.Scene();T3.sc.background=new THREE.Color(0x1b1c1e);
   T3.cam=new THREE.PerspectiveCamera(70,1,.05,60);T3.cam.rotation.order="YXZ";
   T3.grp=new THREE.Group();T3.sc.add(T3.grp);T3.ready=true;
   function size(){var w=box.clientWidth||320,h=box.clientHeight||320;T3.r.setSize(w,h,false);T3.r.domElement.style.width="100%";T3.r.domElement.style.height="100%";T3.cam.aspect=w/h;T3.cam.updateProjectionMatrix()}
@@ -1029,6 +1751,44 @@ function init3D(){
   }
   requestAnimationFrame(loop);
   return true;
+}
+function addTracks3D(r,g,h,gk){
+  (r.trks||[]).forEach(function(tr){
+    var sg=trkSeg(r,tr),tx=(sg.a.x+sg.b.x)/2,ty=(sg.a.y+sg.b.y)/2,tang=Math.atan2(sg.b.y-sg.a.y,sg.b.x-sg.a.x),tl=Math.max(sg.len,.1),
+        ux=Math.cos(tang),uy=Math.sin(tang),rec=tr.k==="r",white=(tr.c||(rec?"w":"b"))==="w",pl=0,k;
+    var bodyM=new THREE.MeshStandardMaterial({color:white?0xf2f2f2:0x222222,roughness:.5,side:THREE.DoubleSide}),
+        lmat=new THREE.MeshBasicMaterial({color:0xfff3e0,side:THREE.DoubleSide});
+    if(rec){
+      /* ВСТРОЕННЫЙ: төбемен тең, ұзын сызықтық шамдар (30 немесе 60 см) */
+      var prof=new THREE.Mesh(new THREE.BoxGeometry(tl,.012,.07),bodyM);prof.position.set(tx,h-.006,-ty);prof.rotation.y=tang;g.add(prof);
+      var slot=new THREE.Mesh(new THREE.BoxGeometry(Math.max(tl-.03,.05),.0125,.034),new THREE.MeshBasicMaterial({color:white?0x1b1b1b:0x3a3a3a}));slot.position.set(tx,h-.0062,-ty);slot.rotation.y=tang;g.add(slot);
+      var ml=+tr.ll===.3?.3:.6,gap=.12;ml=Math.min(ml,Math.max(tl-.04,.1));
+      var n=Math.max(1,Math.floor((tl-.04+gap)/(ml+gap))),total=n*ml+(n-1)*gap,
+          lG=new THREE.BoxGeometry(ml,.012,.022),hG=new THREE.PlaneGeometry(ml+.1,.2).rotateX(Math.PI/2),
+          hM=new THREE.MeshBasicMaterial({color:0xffe2b0,transparent:true,opacity:Math.min(.35,.2*gk),side:THREE.DoubleSide});
+      for(k=0;k<n;k++){
+        var off=-total/2+ml/2+k*(ml+gap),px=tx+ux*off,py=ty+uy*off;
+        var lm=new THREE.Mesh(lG,lmat);lm.position.set(px,h-.0135,-py);lm.rotation.y=tang;g.add(lm);
+        var hh=new THREE.Mesh(hG,hM);hh.position.set(px,h-.014,-py);hh.rotation.y=tang;g.add(hh);
+        if(pl<3&&(n<=3||k%2===0)){pl++;var RL=new THREE.PointLight(0xfff3e0,.45*gk,6);RL.position.set(px,h-.2,-py);g.add(RL)}
+      }
+    }else{
+      /* НАКЛАДНОЙ: төбеге бекітілген, шамдар салбырап тұрады */
+      var bar=new THREE.Mesh(new THREE.BoxGeometry(tl,.035,.045),bodyM);bar.position.set(tx,h-.0185,-ty);bar.rotation.y=tang;g.add(bar);
+      var nh=Math.max(2,Math.min(6,Math.round(tl/.6))),drop=.45,rimY=h-.037-drop,cl=drop-.1,
+          cordG=new THREE.CylinderGeometry(.004,.004,cl,6),cordM=new THREE.MeshBasicMaterial({color:white?0xcfcfcf:0x101010}),
+          domeG=new THREE.SphereGeometry(.1,20,10,0,Math.PI*2,0,Math.PI/2),discG=new THREE.CircleGeometry(.094,20).rotateX(Math.PI/2),
+          bulbG=new THREE.SphereGeometry(.03,10,8);
+      for(k=0;k<nh;k++){
+        var tt=(k+.5)/nh-.5,hx=tx+ux*tl*tt,hy=ty+uy*tl*tt;
+        var cord=new THREE.Mesh(cordG,cordM);cord.position.set(hx,h-.037-cl/2,-hy);g.add(cord);
+        var dome=new THREE.Mesh(domeG,bodyM);dome.position.set(hx,rimY,-hy);g.add(dome);
+        var bulb=new THREE.Mesh(bulbG,lmat);bulb.position.set(hx,rimY+.03,-hy);g.add(bulb);
+        var disc=new THREE.Mesh(discG,lmat);disc.position.set(hx,rimY-.003,-hy);g.add(disc);
+        if(pl<3&&k%2===0){pl++;var SL=new THREE.PointLight(0xfff3e0,.55*gk,6);SL.position.set(hx,rimY-.15,-hy);g.add(SL)}
+      }
+    }
+  });
 }
 function build3D(){
   var e3=$("ed3d"),pe=$("pgEd");if(!e3||!pe||e3.hidden||pe.hidden)return;
@@ -1089,15 +1849,7 @@ function build3D(){
       var cloth=new THREE.Mesh(geo,clothM);cloth.position.set(mx+nx*.1,h-.04-chh/2,-(my+ny*.1));cloth.rotation.y=ang;g.add(cloth);
     });
   })();
-  (r.trks||[]).forEach(function(trkItem){
-    var sg=trkSeg(r,trkItem),tx=(sg.a.x+sg.b.x)/2,ty=(sg.a.y+sg.b.y)/2,tang=Math.atan2(sg.b.y-sg.a.y,sg.b.x-sg.a.x),tl=Math.max(sg.len,.1);
-    var tm=new THREE.Mesh(new THREE.BoxGeometry(tl,.035,.045),new THREE.MeshStandardMaterial({color:0x222222,roughness:.5}));tm.position.set(tx,h-.02,-ty);tm.rotation.y=tang;g.add(tm);
-    var nh=Math.max(2,Math.min(6,Math.round(tl/.6))),hmat=new THREE.MeshStandardMaterial({color:0x2b2b2b,roughness:.4}),lmat=new THREE.MeshBasicMaterial({color:0xfff3e0,side:THREE.DoubleSide});
-    for(var ti=0;ti<nh;ti++){var tt=(ti+.5)/nh-.5,hx=tx+Math.cos(tang)*tl*tt,hy=ty+Math.sin(tang)*tl*tt;
-      var head=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,.11,12),hmat);head.position.set(hx,h-.09,-hy);g.add(head);
-      var lens=new THREE.Mesh(new THREE.CircleGeometry(.032,12).rotateX(Math.PI/2),lmat);lens.position.set(hx,h-.147,-hy);g.add(lens);
-      if(ti%3===0){var TL=new THREE.PointLight(0xfff3e0,.5*gk,6);TL.position.set(hx,h-.2,-hy);g.add(TL)}}
-  });
+  addTracks3D(r,g,h,gk);
   var bb=bbox(poly),c=clampToPoly(poly,(bb.minX+bb.maxX)/2,(bb.minY+bb.maxY)/2),ey=Math.min(1.6,h*.62);
   if(!T3.pos||T3.built!==T3.ri||!pointInPoly(poly,T3.pos.x,-T3.pos.z)){T3.pos={x:c.x,y:ey,z:-c.y};T3.yaw=0;T3.pitch=.1}
   T3.pos.y=ey;T3.built=T3.ri;
