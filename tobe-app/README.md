@@ -26,7 +26,7 @@
 
 **Ұзарту:** клиент қосымшадағы «Ұзарту» батырмасын басады (құрылғы коды сол қалпында), сіз жаңа кілт жасайсыз.
 
-**Төлем және байланыс мәтіні:** `www/license.js` файлының басындағы `contact` және `price` жолдарын толтырыңыз (мысалы, Kaspi нөміріңіз). Олар құлыптау экранында көрінеді.
+**Төлем және байланыс мәтіні:** `www/index.html` ішіндегі «ЛИЦЕНЗИЯ» блогының басындағы `contact` және `price` жолдарын толтырыңыз (мысалы, Kaspi нөміріңіз). Олар құлыптау экранында көрінеді.
 
 **ЖЕКЕ КІЛТТІ (`private-key.jwk.json`) GITHUB-ҚА ЖҮКТЕМЕҢІЗ.** Ол тек сізде сақталады. Қосымшада тек ашық кілт бар, ол арқылы кілт жасау мүмкін емес.
 
@@ -34,18 +34,30 @@
 Қосымшада «1 ай / 3 ай / 12 ай» батырмалары бар. Төлем өткен соң сервер кілтті өзі жасап, қосымшаға жібереді. Қолмен ештеңе істеудің қажеті жоқ.
 Сервер Cloudflare Workers-те жұмыс істейді (`server/` папкасы). Жеке кілт сонда ғана сақталады.
 
-**Бір рет баптау:**
-1. dash.cloudflare.com сайтында тегін аккаунт ашыңыз. Account ID: Workers & Pages бетінің оң жағында.
-2. My Profile → API Tokens → Create Token → «Edit Cloudflare Workers» үлгісі. Токенді көшіріп алыңыз.
-3. GitHub репозиторийінде Settings → Secrets and variables → Actions → New repository secret. Үш құпия қосыңыз:
-   - `CLOUDFLARE_API_TOKEN` — 2-қадамдағы токен
+**Бір рет баптау (GitHub Actions арқылы):**
+1. dash.cloudflare.com сайтында тегін аккаунт ашыңыз.
+2. **workers.dev мекенжайын тіркеңіз (бір рет, қажет):** Dashboard → Workers & Pages бөлімін ашыңыз. Сұраса, subdomain атын таңдаңыз (мысалы, `tobe-kz`). Онсыз деплой «subdomain» қатесімен тоқтайды.
+3. Account ID: Workers & Pages бетінің оң жағында (Account details).
+4. My Profile → API Tokens → Create Token → «Edit Cloudflare Workers» үлгісі → Continue → Create. Токенді көшіріп алыңыз (бір рет қана көрсетіледі).
+5. GitHub репозиторийінде Settings → Secrets and variables → Actions → **Repository secrets** → New repository secret. Үш құпия қосыңыз:
+   - `CLOUDFLARE_API_TOKEN` — 4-қадамдағы токен
    - `CLOUDFLARE_ACCOUNT_ID` — Account ID
-   - `LICENSE_PRIVATE_JWK` — `private-key.jwk.json` файлының бүкіл мазмұны
-4. Actions → «Deploy license server» → Run workflow. Аяқталған соң логтан `https://tobe-license.….workers.dev` мекенжайын табыңыз.
-5. Сол мекенжайды `www/license.js` ішіндегі `api: ""` орнына қойыңыз, сосын «Build APK» жұмысын қайта іске қосыңыз.
+   - `LICENSE_PRIVATE_JWK` — `private-key.jwk.json` файлының бүкіл мазмұны (`{` мен `}` қоса)
+6. Actions → «Deploy license server» → Run workflow. Жұмыс өзі тексереді: құпиялар бар ма, жеке кілт қосымшадағы ашық кілтке сәйкес пе, Cloudflare-ға кіру бар ма. Қате болса, қызыл жолда не істеу керегі қазақша жазылады.
+7. Сәтті аяқталған соң жұмыстың «Summary» бетінде `api: "https://tobe-license.….workers.dev"` жолы шығады. Оны `www/index.html` ішіндегі «ЛИЦЕНЗИЯ» блогындағы `api: ""` орнына қойып, «Build APK» жұмысын қайта іске қосыңыз.
+
+**GitHub-сыз балама жол (Cloudflare сайтының өзінде):**
+1. Workers & Pages → Create → Create Worker → аты `tobe-license` → Deploy → Edit code. Ішіндегінің бәрін өшіріп, `server/worker.js` мазмұнын қойып, Deploy басыңыз.
+2. Workers & Pages → KV → Create a namespace → аты `tobe-license-orders`.
+3. Worker → Settings → Bindings → Add → KV namespace: Variable name `ORDERS`, namespace `tobe-license-orders`.
+4. Worker → Settings → Variables and Secrets → Add: `PROVIDER` = `test`, `ALLOW_TEST_PAYMENTS` = `1`, `PLANS` = `server/wrangler.toml` ішіндегі `PLANS` жолының тырнақшаның ішіндегі JSON мәтіні; **Secret** түрімен `LICENSE_PRIVATE_JWK` = `private-key.jwk.json` мазмұны.
+5. Worker бетіндегі мекенжайды (`https://tobe-license.….workers.dev`) 7-қадамдағыдай `api:` жолына қойыңыз.
+
+**Тексеру:** браузерде `мекенжай/plans` ашыңыз. Баға пакеттері JSON түрінде шықса, сервер жұмыс істеп тұр.
 
 **Бағаны өзгерту:** `server/wrangler.toml` ішіндегі `PLANS` жолы (теңгемен). Файлды өзгертсеңіз, сервер автоматты қайта орнатылады. Қосымшаны қайта жинаудың қажеті жоқ.
 
 **Тест режимі:** қазір төлем тестілік (нақты ақша жоқ). Нақты сатылымға дейін міндетті түрде `ALLOW_TEST_PAYMENTS = "0"` қойып, нақты төлем жүйесін қосыңыз, әйтпесе кез келген адам тегін кілт ала алады.
+Тест режимінде төлем бетіндегі «Төлеу (тест)» батырмасы ақысыз кілт береді. `"0"` қойғанда төлем батырмалары «Төлем әзірге қосылмаған» дейді, сондықтан нақты төлем жүйесі қосылғанға дейін кілтті `admin/keygen.html` арқылы қолмен беріңіз.
 
 **Нақты төлем жүйесін қосу:** `server/worker.js` ішіндегі `providers` бөліміне жүйенің адаптері қосылады (төлем сілтемесін жасау және төлем хабарламасын (webhook) тексеру). Қалғаны өзгермейді. Ол үшін төлем жүйесінің мерчант аккаунты мен API-кілттері керек.
