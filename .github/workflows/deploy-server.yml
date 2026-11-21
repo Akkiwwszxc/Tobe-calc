@@ -52,7 +52,7 @@ jobs:
             console.log("::error::LICENSE_PRIVATE_JWK жеке кілт емес (d өрісі жоқ). Ашық кілтті (public-key.json) емес, private-key.jwk.json мәтінін қойыңыз.");
             process.exit(1);
           }
-          const files = execSync("find . -name index.html -not -path '*/node_modules/*' -not -path './.git/*'").toString().split("\n").filter(Boolean);
+          const files = execSync("find . -name index.html -not -path '*/node_modules/*' -not -path './.git/*' -not -path './.github/*'").toString().split("\n").filter(Boolean);
           let pub = null;
           for (const f of files) {
             const m = fs.readFileSync(f, "utf8").match(/pub:\s*(\{[^}]*"kty"[^}]*\})/);
@@ -68,7 +68,13 @@ jobs:
         id: p
         if: steps.s.outputs.have == '1'
         run: |
-          F=$(find . -name wrangler.toml -not -path "*/node_modules/*" | head -n 1)
+          F=""
+          for c in ./tobe-app/server/wrangler.toml ./server/wrangler.toml; do
+            if [ -f "$c" ]; then F="$c"; break; fi
+          done
+          if [ -z "$F" ]; then
+            F=$(find . -name wrangler.toml -not -path "*/node_modules/*" -not -path "./.git/*" -not -path "./.github/*" | sort | head -n 1)
+          fi
           if [ -z "$F" ]; then
             echo "::error::wrangler.toml табылмады. server папкасы (worker.js және wrangler.toml) репозиторийге жүктелмеген."
             echo "Repo contents:"; find . -not -path "./.git/*" -maxdepth 3
@@ -80,7 +86,13 @@ jobs:
       - name: Copy app as 3D viewer page
         if: steps.s.outputs.have == '1'
         run: |
-          APP=$(find . -path "*/www/index.html" -not -path "*/node_modules/*" -not -path "./.git/*" | head -n 1)
+          APP=""
+          for c in ./tobe-app/www/index.html ./www/index.html; do
+            if [ -f "$c" ]; then APP="$c"; break; fi
+          done
+          if [ -z "$APP" ]; then
+            APP=$(find . -path "*/www/index.html" -not -path "*/node_modules/*" -not -path "./.git/*" -not -path "./.github/*" | sort | head -n 1)
+          fi
           if [ -z "$APP" ]; then
             echo "::error::www/index.html табылмады: 3D көру беті жасалмайды."
             exit 1
