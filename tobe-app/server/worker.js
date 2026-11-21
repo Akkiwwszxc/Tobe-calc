@@ -10,7 +10,7 @@ const SHARE_MAX = 60000; // сұраныс көлемі (таңба), қалып
 const CORS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET,POST,OPTIONS",
-  "access-control-allow-headers": "content-type,x-license",
+  "access-control-allow-headers": "content-type,x-license,x-admin",
   "access-control-max-age": "86400",
 };
 const J = (o, s = 200) =>
@@ -153,6 +153,7 @@ async function fulfil(env, id, amount) {
   o.status = "paid"; o.key = key; o.exp = exp; o.paidAt = Date.now();
   await env.ORDERS.put("ord:" + id, JSON.stringify(o), { expirationTtl: 30 * 86400 });
   await env.ORDERS.put("lic:" + o.device, JSON.stringify({ key, exp }));
+  await env.ORDERS.delete("pend:" + id);
   return { order: o };
 }
 
@@ -164,11 +165,21 @@ async function createOrder(req, env, u) {
   const plan = plans(env).find((x) => x.id === b.plan);
   if (!DEVICE_RE.test(device) || !plan) return J({ error: "bad_request" }, 400);
   const prov = providers[env.PROVIDER];
-  if (!prov || (env.PROVIDER === "test" && env.ALLOW_TEST_PAYMENTS !== "1")) return J({ error: "provider_not_configured" }, 503);
+  if (!prov || (env.PROVIDER === "test" && env.ALLOW_TEST_PAYMENTS !== "1") || (prov.ready && !prov.ready(env))) return J({ error: "provider_not_configured" }, 503);
+  if (prov.manual) { // қайталап басқанда жаңа тапсырыс жасамай, ашық тапсырысты қайтарамыз
+    const ex = await env.ORDERS.get("kp:" + device + ":" + plan.id);
+    const eo = ex && ID_RE.test(ex) ? await env.ORDERS.get("ord:" + ex, "json") : null;
+    if (eo && eo.status === "pending") { const r0 = await prov.create(eo, env, u.origin); return J({ order: eo.id, payUrl: r0.payUrl, kaspi: r0.kaspi }); }
+  }
   const o = { id: rid(), device, plan: plan.id, months: plan.months, price: plan.price, status: "pending", created: Date.now() };
-  await env.ORDERS.put("ord:" + o.id, JSON.stringify(o), { expirationTtl: 86400 });
+  if (prov.manual) o.code = kcode();
+  await env.ORDERS.put("ord:" + o.id, JSON.stringify(o), { expirationTtl: prov.ttl || 86400 });
+  if (prov.manual) {
+    await env.ORDERS.put("pend:" + o.id, "1", { expirationTtl: prov.ttl, metadata: { device, plan: plan.id, months: o.months, price: o.price, code: o.code, created: o.created } });
+    await env.ORDERS.put("kp:" + device + ":" + plan.id, o.id, { expirationTtl: 43200 });
+  }
   const r = await prov.create(o, env, u.origin);
-  return J({ order: o.id, payUrl: r.payUrl });
+  return J({ order: o.id, payUrl: r.payUrl, kaspi: r.kaspi });
 }
 
 async function claim(u, env) {
@@ -178,6 +189,7 @@ async function claim(u, env) {
   const o = await env.ORDERS.get("ord:" + id, "json");
   if (!o || o.device !== device) return J({ status: "unknown" }, 404);
   if (o.status === "paid") return J({ status: "paid", key: o.key, exp: o.exp });
+  if (o.status === "rejected") return J({ status: "rejected" });
   return J({ status: "pending" });
 }
 
@@ -242,6 +254,165 @@ async function webhook(name, req, env) {
   return r.response || J({ ok: true });
 }
 
+/* ---------- Kaspi: клиент аударым жасайды, сатушы растайды ----------
+   Kaspi-дің төлем қабылдауға ашық API-ы жоқ, сондықтан:
+   1) қосымша тапсырыс жасайды (сома + 5 таңбалы код);
+   2) клиент Kaspi-де сіздің нөміріңізге сол соманы аударады, түсініктемеге кодты жазады;
+   3) сіз /admin бетінде «Растау» басасыз, кілт клиентке автоматты түседі.
+   Растау сұраныстары жеке кілтпен қолтаңбаланады, сондықтан қосымша құпия сөз қажет емес. */
+const KALPH = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function kcode() { const a = crypto.getRandomValues(new Uint8Array(5)); return Array.from(a, (x) => KALPH[x % 32]).join(""); }
+function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function kaspiInfo(o, env) { return { phone: String(env.KASPI_PHONE || ""), name: String(env.KASPI_NAME || ""), amount: o.price, code: o.code }; }
+providers.kaspi = {
+  manual: true,
+  ttl: 3 * 86400, // сатушы растауға 3 күн уақыт
+  ready(env) { return String(env.KASPI_PHONE || "").replace(/\D/g, "").length >= 10; },
+  async create(order, env, origin) {
+    return { payUrl: origin + "/pay/kaspi?order=" + order.id, kaspi: kaspiInfo(order, env) };
+  },
+};
+
+const HTML_HEAD = { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "referrer-policy": "no-referrer" };
+const PAGE_CSS = `:root{--bg:#eef2f6;--card:#fff;--ink:#14213d;--mute:#5b6b82;--line:#d5dde8;--acc:#0b7a75;--accbg:#dff1ef}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1522;--card:#17202f;--ink:#e8eef7;--mute:#97a6bd;--line:#2a3649;--acc:#4fd1c5;--accbg:#143333}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,Segoe UI,Roboto,sans-serif}
+main{max-width:480px;margin:0 auto;padding:16px}h1{font-size:21px;margin:10px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}.row:first-child{border-top:0}
+.row b{font:700 19px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:1px}.lab{font-size:13px;color:var(--mute)}
+button{font:inherit;padding:9px 13px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button.pr{background:#ffab00;color:#1b1c1e;border-color:#ffab00;font-weight:700}button.no{color:#d64545}
+textarea{width:100%;min-height:84px;font:13px/1.35 ui-monospace,Menlo,Consolas,monospace;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 10px}
+.note{font-size:14px;color:var(--mute);margin:8px 0}.ok{color:var(--acc);font-weight:700}.bad{color:#d64545;font-weight:700}`;
+
+async function kaspiPage(u, env) {
+  const id = u.searchParams.get("order") || "";
+  if (!ID_RE.test(id)) return new Response("Bad order", { status: 400 });
+  const o = await env.ORDERS.get("ord:" + id, "json");
+  if (!o || !o.code) return new Response("Order not found", { status: 404 });
+  const k = kaspiInfo(o, env), sum = String(Math.round(Number(k.amount))).replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0") + " ₸"; // ICU-ға тәуелсіз, әр ортада бірдей
+  const row = (lab, val, cp) => `<div class="row"><div><div class="lab">${lab}</div><b>${esc(val)}</b></div>${cp ? `<button type="button" data-cp="${esc(cp)}">Көшіру</button>` : ""}</div>`;
+  const html = `<!doctype html><html lang="kk"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kaspi арқылы төлеу</title>
+<style>${PAGE_CSS}</style><main><h1>Kaspi арқылы төлеу</h1>
+<div class="card">${row("Kaspi нөмірі", k.phone, k.phone)}${k.name ? row("Алушы", k.name, "") : ""}${row("Сома (дәл осы сома)", sum, String(k.amount))}${row("Түсініктемеге жазыңыз", k.code, k.code)}</div>
+<p class="note">Kaspi.kz қосымшасын ашыңыз → «Аударымдар» → «Телефон нөміріне». Нөмірді, соманы көрсетіп, түсініктемеге кодты жазыңыз.</p>
+<p class="note">Аударымнан кейін сатушы төлемді растайды (әдетте бірнеше минут). Кілт қосымшаға автоматты түседі, осы бетті жауып, қосымшаға оралуға болады.</p>
+<p id="st" class="note">Растауды күтудеміз…</p></main>
+<script>var ID=${JSON.stringify(id)};
+function cp(t,b){var f=function(){var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy")}catch(e){}a.remove()};
+if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(f);else f();b.textContent="Көшірілді ✓";setTimeout(function(){b.textContent="Көшіру"},1500)}
+Array.prototype.forEach.call(document.querySelectorAll("[data-cp]"),function(b){b.onclick=function(){cp(b.getAttribute("data-cp"),b)}});
+var T;function chk(){fetch("/pay/kaspi/status?order="+ID).then(function(r){return r.json()}).then(function(j){var m=document.getElementById("st");
+if(j.status==="paid"){m.className="ok";m.textContent="Төлем расталды ✓ Қосымшаға оралыңыз: кілт автоматты түседі.";clearInterval(T)}
+else if(j.status==="rejected"){m.className="bad";m.textContent="Төлем расталмады. Сатушымен байланысыңыз.";clearInterval(T)}}).catch(function(){})}
+T=setInterval(chk,5000);chk();</script></html>`;
+  return new Response(html, { headers: HTML_HEAD });
+}
+
+async function kaspiStatus(u, env) {
+  const id = u.searchParams.get("order") || "";
+  if (!ID_RE.test(id)) return J({ error: "bad_request" }, 400);
+  const o = await env.ORDERS.get("ord:" + id, "json");
+  if (!o || !o.code) return J({ status: "unknown" }, 404);
+  return J({ status: o.status });
+}
+
+// Сатушы сұранысы: x-admin: <мс-уақыт>.<қолтаңба>; қолтаңба = ECDSA("tobe-admin|әрекет|аргумент|уақыт")
+async function adminOk(env, req, action, arg) {
+  const h = String(req.headers.get("x-admin") || ""), i = h.indexOf(".");
+  if (i < 1) return false;
+  const ts = h.slice(0, i);
+  if (!/^\d{10,14}$/.test(ts) || Math.abs(Date.now() - Number(ts)) > 300000) return false;
+  let sig, pub;
+  try {
+    sig = b64uBytes(h.slice(i + 1));
+    const j = JSON.parse(env.LICENSE_PRIVATE_JWK);
+    pub = { kty: j.kty, crv: j.crv, x: j.x, y: j.y };
+  } catch (e) { return false; }
+  if (sig.length !== 64) return false;
+  try {
+    const pk = await crypto.subtle.importKey("jwk", pub, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+    return await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, pk, sig, new TextEncoder().encode("tobe-admin|" + action + "|" + arg + "|" + ts));
+  } catch (e) { return false; }
+}
+
+async function adminOrders(req, env) {
+  if (!(await adminOk(env, req, "list", "-"))) return J({ error: "auth" }, 401);
+  const l = await env.ORDERS.list({ prefix: "pend:", limit: 100 });
+  const orders = l.keys.map((k) => ({ id: k.name.slice(5), ...(k.metadata || {}) })).sort((a, b) => (b.created || 0) - (a.created || 0));
+  return J({ orders });
+}
+
+async function adminAct(req, env, action) {
+  let b;
+  try { b = await req.json(); } catch (e) { return J({ error: "bad_request" }, 400); }
+  const id = String((b && b.order) || "");
+  if (!ID_RE.test(id)) return J({ error: "bad_request" }, 400);
+  if (!(await adminOk(env, req, action, id))) return J({ error: "auth" }, 401);
+  const o = await env.ORDERS.get("ord:" + id, "json");
+  if (!o) return J({ error: "no_order" }, 404);
+  if (action === "confirm") {
+    if (o.status === "rejected") return J({ error: "rejected" }, 409);
+    const f = await fulfil(env, id, null);
+    if (f.error) return J({ error: f.error }, 400);
+    await env.ORDERS.delete("pend:" + id);
+    return J({ ok: true, exp: f.order.exp, device: o.device });
+  }
+  if (o.status === "paid") return J({ error: "paid" }, 409);
+  o.status = "rejected";
+  await env.ORDERS.put("ord:" + id, JSON.stringify(o), { expirationTtl: 7 * 86400 });
+  await env.ORDERS.delete("pend:" + id);
+  await env.ORDERS.delete("kp:" + o.device + ":" + o.plan);
+  return J({ ok: true });
+}
+
+function adminPage() {
+  const html = `<!doctype html><html lang="kk"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Төлемді растау</title>
+<style>${PAGE_CSS}</style><main><h1>Төлемді растау (Kaspi)</h1>
+<div class="card"><div class="lab">Жеке кілт (private-key.jwk.json мәтіні). Құрылғыдан шықпайды: қолтаңба осы жерде жасалады.</div>
+<textarea id="priv" spellcheck="false" placeholder="{...}"></textarea>
+<label class="note" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="rem"> Осы құрылғыда есте сақтау</label></div>
+<div style="display:flex;gap:8px"><button type="button" class="pr" id="rf">Жаңарту</button><span id="err" class="bad" style="align-self:center"></span></div>
+<div id="list"></div><p class="note" id="empty">Кілтті енгізіп, «Жаңарту» басыңыз.</p></main>
+<script>var $=function(i){return document.getElementById(i)};
+try{var sv=localStorage.getItem("adm_priv");if(sv){$("priv").value=sv;$("rem").checked=true}}catch(e){}
+function b64u(a){var s="";for(var i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/,"")}
+async function sig(action,arg){var k=await crypto.subtle.importKey("jwk",JSON.parse($("priv").value.trim()),{name:"ECDSA",namedCurve:"P-256"},false,["sign"]);
+var ts=String(Date.now());var s=new Uint8Array(await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},k,new TextEncoder().encode("tobe-admin|"+action+"|"+arg+"|"+ts)));return ts+"."+b64u(s)}
+async function call(path,action,arg,body){var h={"x-admin":await sig(action,arg)},o={headers:h};
+if(body){o.method="POST";h["content-type"]="application/json";o.body=JSON.stringify(body)}
+var r=await fetch(path,o),j={};try{j=await r.json()}catch(e){}j._s=r.status;return j}
+function two(n){return("0"+n).slice(-2)}
+function fmt(t){var d=new Date(t);return two(d.getDate())+"."+two(d.getMonth()+1)+" "+two(d.getHours())+":"+two(d.getMinutes())}
+function row(lab,val){var d=document.createElement("div");d.className="row";var a=document.createElement("div");var l=document.createElement("div");l.className="lab";l.textContent=lab;var b=document.createElement("b");b.textContent=val;a.appendChild(l);a.appendChild(b);d.appendChild(a);return d}
+var seen=null;
+function draw(list){var el=$("list");el.textContent="";$("empty").textContent=list.length?"":"Растауды күтетін төлем жоқ.";
+list.forEach(function(o){var c=document.createElement("div");c.className="card";
+c.appendChild(row("Түсініктеме (код)",o.code||"—"));c.appendChild(row("Сома",Number(o.price).toLocaleString("ru-RU")+" ₸ · "+o.months+" ай"));
+c.appendChild(row("Уақыты · құрылғы",fmt(o.created)+" · "+String(o.device||"").slice(0,4)+"-"+String(o.device||"").slice(4)));
+var r=document.createElement("div");r.style.cssText="display:flex;gap:8px;margin-top:10px";
+var ok=document.createElement("button");ok.type="button";ok.className="pr";ok.style.flex="1";ok.textContent="Растау";ok.onclick=function(){act("confirm",o)};
+var no=document.createElement("button");no.type="button";no.className="no";no.textContent="Қабылдамау";no.onclick=function(){act("reject",o)};
+r.appendChild(ok);r.appendChild(no);c.appendChild(r);el.appendChild(c)});
+document.title=(list.length?"("+list.length+") ":"")+"Төлемді растау";
+if(seen!==null&&list.length>seen&&navigator.vibrate)navigator.vibrate(200);seen=list.length}
+async function load(){$("err").textContent="";if(!$("priv").value.trim()){return}
+try{localStorage.removeItem("adm_priv");if($("rem").checked)localStorage.setItem("adm_priv",$("priv").value.trim())}catch(e){}
+try{var j=await call("/admin/orders","list","-");
+if(j._s===401){$("err").textContent="Кілт сәйкес емес немесе құрылғы сағаты қате";return}
+if(j._s!==200){$("err").textContent="Қате ("+j._s+")";return}draw(j.orders||[])}catch(e){$("err").textContent="Кілт дұрыс емес немесе желі жоқ"}}
+async function act(kind,o){
+if(kind==="confirm"&&!confirm(Number(o.price).toLocaleString("ru-RU")+" ₸ Kaspi-ге келді ме? Код: "+(o.code||"—")))return;
+if(kind==="reject"&&!confirm("Бұл тапсырысты қабылдамайсыз ба? Код: "+(o.code||"—")))return;
+try{var j=await call("/admin/"+kind,kind,o.id,{order:o.id});
+if(j._s===200){$("err").textContent="";await load()}else $("err").textContent=j.error==="paid"?"Бұрын расталған":j.error==="rejected"?"Бұрын қабылданбаған":"Қате ("+j._s+")"}
+catch(e){$("err").textContent="Желі қатесі"}}
+$("rf").onclick=load;$("priv").addEventListener("change",load);
+setInterval(function(){if(!document.hidden)load()},20000);if($("priv").value.trim())load();</script></html>`;
+  return new Response(html, { headers: HTML_HEAD });
+}
+
 export default {
   async fetch(req, env) {
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
@@ -250,8 +421,14 @@ export default {
       if (p === "/" && !env.ASSETS) return J({ ok: true, service: "tobe-license" });
       if (p === "/share" && req.method === "POST") return await createShare(req, env);
       if (p.startsWith("/share/") && req.method === "GET") return await readShare(p.slice(7), env);
-      if (p === "/plans") return J({ mode: env.PROVIDER === "test" ? "test" : "live", plans: plans(env) });
+      if (p === "/plans") return J({ mode: env.PROVIDER === "test" ? "test" : env.PROVIDER === "kaspi" ? "kaspi" : "live", plans: plans(env) });
       if (p === "/order" && req.method === "POST") return await createOrder(req, env, u);
+      if (p === "/pay/kaspi") return await kaspiPage(u, env);
+      if (p === "/pay/kaspi/status") return await kaspiStatus(u, env);
+      if (p === "/admin") return adminPage();
+      if (p === "/admin/orders" && req.method === "GET") return await adminOrders(req, env);
+      if (p === "/admin/confirm" && req.method === "POST") return await adminAct(req, env, "confirm");
+      if (p === "/admin/reject" && req.method === "POST") return await adminAct(req, env, "reject");
       if (p === "/claim") return await claim(u, env);
       if (p === "/restore") return await restore(u, env);
       if (p === "/pay/test" && testOn(env)) return testPage(u);
