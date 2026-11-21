@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1b1c1e">
+<meta property="og:title" content="Төбе · 3D модель потолка">
+<meta property="og:description" content="Бөлменің 3D моделін ашыңыз: айналдырып, жүріп көріңіз. Откройте 3D-модель комнаты.">
+<meta property="og:type" content="website">
+<title>Төбе калькуляторы</title>
+<style>
+:root{color-scheme:dark;--bg:#1b1c1e;--card:#26272a;--ink:#eceff3;--mute:#a3abb5;--line:#3d4046;--acc:#4aa3ff;--accbg:#1f3550;--sum:#ffab00;--sumink:#1b1c1e;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Segoe UI",Roboto,system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.5rem;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--mute);margin:0 0 20px}
+h2{font-size:1rem;margin:24px 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.room{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 0;border-bottom:1px solid var(--line)}
+.room:last-child{border-bottom:0}
+.room .full{grid-column:1/-1}
+.room .info{color:var(--mute);font-size:.85rem}
+.ex{display:grid;grid-template-columns:1fr 90px 70px auto;gap:8px;margin-bottom:8px;align-items:end}
+.head{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+.cat{display:grid;grid-template-columns:1fr 110px auto;gap:8px;margin-bottom:8px;align-items:end}
+label{display:block;font-size:.8rem;color:var(--mute);margin-bottom:3px}
+input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 10px}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 12px}
+button:disabled{opacity:.4;cursor:default}
+.add{margin-top:10px;width:100%;background:var(--accbg);border-color:var(--acc);color:var(--acc);font-weight:600}
+.del{color:var(--mute)}
+.stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;width:fit-content;margin-top:4px;background:var(--card)}
+.stepper .stp{width:44px;height:40px;border:0;background:var(--card);font-size:1.3rem;line-height:1;cursor:pointer;color:var(--ink)}
+.stepper .stp:first-child{border-right:1px solid var(--line)}
+.stepper .stp:last-child{border-left:1px solid var(--line)}
+.stepper .stp:active{background:var(--acc);color:#fff}
+.stepper .stpn{min-width:40px;text-align:center;font-weight:600;font-size:1rem;color:var(--ink)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.total{margin-top:24px;background:var(--sum);color:var(--sumink);border-radius:10px;padding:16px}
+.total .big{font-size:2rem;font-weight:700;letter-spacing:-.02em}
+.total table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.92rem}
+.total td{padding:4px 0;border-top:1px solid rgba(128,128,128,.35)}
+.total td:last-child{text-align:right;white-space:nowrap}
+.note{color:var(--mute);font-size:.8rem;margin-top:10px}
+.kp table{width:100%;border-collapse:collapse;font-size:.9rem;margin:10px 0}
+.kp th,.kp td{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
+.kp th:last-child,.kp td:last-child{text-align:right;white-space:nowrap}
+.kp .tot{font-weight:700;font-size:1.1rem;text-align:right}
+.kp h3{margin:0 0 2px;font-size:1.15rem}
+.kp .meta{color:var(--mute);font-size:.85rem}
+.pf{display:grid;grid-template-columns:1fr 90px 90px auto;gap:8px;margin-bottom:8px;align-items:end}
+.pfr{display:grid;grid-template-columns:1fr 90px auto auto;gap:8px;margin-bottom:6px;align-items:end}
+.vtx{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:6px;align-items:end}
+.pl{fill:var(--accbg);stroke:var(--acc);stroke-width:3;stroke-linejoin:round}
+.sp{fill:#fff;stroke:var(--acc);stroke-width:2.5}.lu{fill:none;stroke:var(--acc);stroke-width:2}
+.dm{font-size:11px;fill:var(--mute);text-anchor:middle;pointer-events:none}
+.vh{fill:var(--card);stroke:var(--acc);stroke-width:2;cursor:grab}
+.v3{position:relative;height:320px;border-radius:10px;overflow:hidden;background:#1b1c1e;touch-action:none}
+.v3 canvas{display:block}
+.dpad{position:absolute;right:12px;bottom:calc(62px + env(safe-area-inset-bottom,0px));z-index:5;display:grid;grid-template-columns:repeat(3,48px);gap:6px}
+.dpad button{padding:0;height:48px;width:48px;border-radius:50%;background:rgba(38,39,42,.92);color:#eceff3;border:1px solid #3d4046;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;touch-action:none;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.dpad button:active{background:#4aa3ff;color:#0e1522;border-color:#4aa3ff}
+.dpad svg{width:22px;height:22px;pointer-events:none}
+.plan{margin:12px 0;break-inside:avoid}
+.planwrap{position:relative;max-width:100%}
+main.wide{max-width:980px}
+.wl{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+.wl-i{position:absolute;transform:translate(-50%,-50%) scale(.75);width:64px;padding:6px 2px;font-size:16px;font-weight:600;text-align:center;border:0;border-bottom:1px dotted var(--mute);border-radius:0;background:transparent;color:var(--mute);pointer-events:auto;-moz-appearance:textfield;appearance:textfield}
+.wl-i:focus{outline:none;border-bottom:1px solid var(--acc);color:var(--ink)}
+.wl-i::-webkit-outer-spin-button,.wl-i::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.plan svg{width:100%;max-width:100%;height:auto;display:block;touch-action:none}
+.sp,.lu{cursor:grab}
+.sp:active,.lu:active{cursor:grabbing}
+.plan .hint{font-size:.78rem;color:var(--mute);margin:4px 0 0}
+.plan b{font-size:.9rem}
+[hidden]{display:none!important}
+.vrow{display:grid;grid-template-columns:36px 1fr 40px;gap:8px;align-items:center;margin-bottom:6px}
+.vrow.hd{font-size:.75rem;color:var(--mute);margin-bottom:2px}
+.vrow.hd span{text-align:center}
+.vrow .vn{width:34px;height:34px;padding:0;border-radius:50%;font-weight:700;border:1.5px solid var(--acc);background:var(--card);color:var(--acc)}
+.vrow.on .vn{background:var(--acc);color:#fff}
+.vrow input{min-width:0}
+.vrow .del{padding:6px 0;font-size:1rem}
+.edbar{display:flex;gap:8px;align-items:center;padding:10px;margin-bottom:10px}
+.edbar select{flex:1;min-width:0}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:9px 16px;background:var(--card);font-weight:700;color:var(--ink)}
+.seg button.on{background:var(--acc);color:#fff}
+.ibtn{width:44px;height:44px;padding:0;font-size:1.1rem;flex:none}
+.edgrid{display:block}
+@media(min-width:900px){.edgrid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}}
+.tools{display:flex;gap:6px;margin:0 0 8px}
+.tool{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;border-radius:12px;font-size:.76rem;line-height:1.1;min-width:0}
+.tool *{pointer-events:none}
+.tool .ic{font-size:1.25rem}
+.tool.on{background:var(--accbg);border-color:var(--acc);color:var(--acc);font-weight:700}
+.plancard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px}
+.plancard .plan{margin:0}
+.undo{position:absolute;top:6px;right:6px;display:flex;gap:6px;z-index:3}
+.undo button{width:38px;height:38px;padding:0;font-size:1.1rem;border-radius:50%}
+.stat{margin:8px 2px;font-size:.88rem;color:var(--mute)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:10px}
+.edgrid .edside .panel{margin-top:0}
+@media(max-width:899px){.edgrid .edside .panel{margin-top:10px}}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.srow .sub{display:block;font-size:.76rem;color:var(--mute)}
+details.set{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:2px 12px 8px}
+details.set summary{cursor:pointer;padding:10px 0;font-weight:600}
+.selbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0;padding:8px;border:1px solid var(--acc);border-radius:8px;background:var(--accbg)}
+.selbar b{color:var(--acc)}
+.selbar button{padding:6px 10px;font-size:.85rem}
+.pgnav{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0;margin:0 0 8px}
+.tabs{display:flex;gap:6px;margin:6px 0}
+.tabs button{flex:1;padding:6px 8px;font-size:.85rem}
+.tabs button.on{background:var(--accbg);border-color:var(--acc);color:var(--acc);font-weight:600}
+.shape3d{fill:var(--accbg);stroke:var(--acc);stroke-width:1.5}
+.wall3d{fill:var(--line);opacity:.55;stroke:var(--acc);stroke-width:1}
+.pr{width:100%;margin-top:10px;background:var(--acc);color:var(--bg);border-color:var(--acc);font-weight:600}
+
+/* ===== бірыңғай стиль: қараңғы, дөңгелек, сары акцент ===== */
+h1{font-size:1.65rem;font-weight:700}
+h2{font-size:1.05rem;font-weight:700;margin:26px 0 10px}
+.card,.panel,details.set,.plancard{border-radius:18px}
+input,select{border-radius:10px;padding:11px 12px}
+button{border-radius:12px;background:#2f3136;font-weight:600}
+.add{border-radius:14px;padding:12px}
+.pr{background:#ffab00;color:#1b1c1e;border-color:#ffab00;border-radius:16px;padding:15px;font-size:1.05rem;font-weight:700}
+.stepper{border-radius:14px}
+.pgnav{padding:10px 0 8px;margin-bottom:14px}
+.tabs{gap:2px;background:#2b2c2f;border-radius:26px;padding:4px;margin:0}
+.tabs button{border:0;background:transparent;border-radius:22px;padding:12px 10px;color:#c6ccd4;font-weight:600;font-size:.92rem}
+.tabs button.on{background:#fff;color:#1b1c1e}
+.total{border-radius:22px;padding:18px}
+.total td{border-top-color:rgba(27,28,30,.28)}
+.total .big{font-weight:800}
+.room .del,.cat .del,.pf .del,.ex .del{border-radius:50%;width:40px;height:40px;padding:0}
+
+/* ===== ұзақ басу мәзірі ===== */
+.cad-tools,.cad-tools .ct{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.ct.has-fly{position:relative}
+.ct.has-fly::after{content:"";position:absolute;right:2px;top:50%;margin-top:-4px;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;opacity:.75}
+.fly{position:absolute;z-index:55;min-width:230px;max-width:calc(100% - 80px);background:#2a2b2f;border:1px solid #3d4046;border-radius:16px;padding:6px;box-shadow:0 10px 28px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:2px}
+.fly button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:transparent;padding:11px 12px;border-radius:10px;color:#eceff3;font-weight:600}
+.fly button:active{background:#3a3c40}
+.fly button.on{background:#1f3550;color:#fff}
+.fly button svg{width:22px;height:22px;flex:none;pointer-events:none}
+.fly button span{flex:1;pointer-events:none}
+.fly .fk{width:22px;text-align:center;color:#4aa3ff;pointer-events:none}
+
+/* ===== CAD редакторы (қараңғы, толық экран) ===== */
+body.edfull{overflow:hidden}
+body.edfull main{max-width:none;padding:0;margin:0}
+body.edfull .pgnav{display:none}
+body.edfull #pgEd{position:fixed;inset:0;z-index:40;overflow:hidden;background:#1b1c1e;color:#eceff3;--bg:#1b1c1e;--card:#2a2b2f;--ink:#eceff3;--mute:#a3abb5;--line:#3d4046;--acc:#4aa3ff;--accbg:#1f3550;color-scheme:dark}
+.cad-top{position:absolute;left:0;right:0;top:0;z-index:30;padding:calc(8px + env(safe-area-inset-top,0px)) 10px 6px;pointer-events:none}
+.cad-top>*{pointer-events:auto}
+.cad-row{display:flex;gap:8px;align-items:center}
+.cad-sp{flex:1}
+.cb{width:46px;height:46px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;background:#3a3c40;border:0;color:#eceff3}
+.cb svg{width:24px;height:24px;pointer-events:none}
+.cb.save{width:56px;border-radius:23px;background:#ffab00;color:#1b1c1e}
+.cb-wrap{position:relative}
+#cadMenu{position:absolute;right:0;top:52px;z-index:60;min-width:230px;background:#2a2b2f;border:1px solid var(--line);border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:2px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#cadMenu button{text-align:left;border:0;background:transparent;padding:11px 12px;border-radius:8px;color:#eceff3}
+#cadMenu button:active{background:#3a3c40}
+.cad-seg{margin:10px auto 0;width:fit-content;max-width:100%;background:#2b2c2f;border:0;border-radius:24px;padding:4px}
+.cad-seg button{background:transparent;border-radius:20px;padding:10px 20px;color:#c6ccd4;font-weight:600}
+.cad-seg button.on{background:#fff;color:#1b1c1e}
+#rmdel{position:absolute;left:10px;right:10px;top:calc(130px + env(safe-area-inset-top,0px));z-index:35}
+#ed2d,#ed3d{position:absolute;inset:0}
+#ed3d{overflow:hidden;background:#1b1c1e}
+#ed3d .v3{position:absolute;inset:0;height:auto;border-radius:0;margin:0}
+#ed3d .v3 canvas{width:100%;height:100%}
+.v3err{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);padding:24px;text-align:center;color:#a3abb5;font-size:15px}
+.v3top{position:absolute;left:0;right:0;top:calc(122px + env(safe-area-inset-top,0px));display:flex;justify-content:center;z-index:6;pointer-events:none;padding:0 12px}
+.v3top select{pointer-events:auto;appearance:none;-webkit-appearance:none;width:auto;min-width:190px;max-width:100%;margin:0;background:rgba(38,39,42,.92) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a3abb5' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center/18px;color:#eceff3;border:1px solid #3d4046;border-radius:999px;padding:11px 40px 11px 18px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.v3gain{position:absolute;left:12px;bottom:calc(62px + env(safe-area-inset-bottom,0px));width:calc(100% - 208px);min-width:130px;height:48px;z-index:5;display:flex;align-items:center;gap:10px;padding:0 16px;background:rgba(38,39,42,.92);border:1px solid #3d4046;border-radius:999px;color:#a3abb5;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.v3gain svg{width:22px;height:22px;flex:none}
+.v3gain input{flex:1;min-width:0;width:100%;margin:0;accent-color:#4aa3ff;background:transparent}
+.v3share{position:absolute;right:12px;top:calc(122px + env(safe-area-inset-top,0px));z-index:6;width:46px;height:46px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(38,39,42,.92);color:#eceff3;border:1px solid #3d4046;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.v3share svg{width:22px;height:22px;pointer-events:none}
+.v3share:active{background:#4aa3ff;color:#0e1522;border-color:#4aa3ff}
+#shSheet{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+#shSheet[hidden]{display:none}
+#shSheet .sh-box{width:100%;max-width:460px;max-height:90%;overflow:auto;background:#26272a;color:#eceff3;border:1px solid #3d4046;border-bottom:0;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+#shSheet b{display:block;font-size:18px;margin-bottom:6px}
+#shSheet p{margin:6px 0 10px;color:#a3abb5;font-size:14px;line-height:1.4}
+#shSheet input{width:100%;margin:0 0 10px;font:14px ui-monospace,Menlo,Consolas,monospace;color:#eceff3;background:#1b1c1e;border:1px solid #3d4046;border-radius:10px;padding:11px 12px}
+#shSheet .sh-row{display:flex;gap:8px;margin-bottom:8px}
+#shSheet button{flex:1;font:inherit;font-weight:600;padding:12px 10px;border-radius:14px;border:1px solid #3d4046;background:#3a3c40;color:#eceff3}
+#shSheet button[hidden]{display:none}
+#shSheet button.pr{background:#ffab00;border-color:#ffab00;color:#1b1c1e}
+#shSheet button:active{background:#4aa3ff;border-color:#4aa3ff;color:#0e1522}
+html.viewer #pgCalc,html.viewer #pgCalcB,html.viewer .pgnav,html.viewer .cad-top,html.viewer #ed2d,html.viewer .v3share{display:none!important}
+html.viewer .v3top{top:calc(12px + env(safe-area-inset-top,0px))}
+html.viewer .v3top select{background-image:none;padding-right:18px;text-align:center;text-align-last:center}
+html.viewer .v3top select:disabled{opacity:1;color:#eceff3;-webkit-text-fill-color:#eceff3}
+html.viewer .v3gain{max-width:360px}
+html.verr .v3top,html.verr .v3gain,html.verr .dpad,html.verr .v3hint{display:none!important}
+.v3hint{position:absolute;left:12px;right:12px;width:fit-content;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5;max-width:calc(100% - 24px);margin:0 auto;text-align:center;font-size:12px;color:#a3abb5;background:rgba(27,28,30,.72);border-radius:8px;padding:2px 8px;pointer-events:none}
+.cad{position:absolute;inset:0}
+.cad-canvas{position:absolute;left:0;right:0;top:calc(122px + env(safe-area-inset-top,0px));bottom:86px;padding-left:58px;display:flex;align-items:center;justify-content:center}
+.cad .planwrap{width:100%}
+.cad .plan{margin:0}
+.cad .plan svg{max-height:100%;overflow:visible}
+.cad-tools{position:absolute;left:8px;top:calc(130px + env(safe-area-inset-top,0px));z-index:20;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;border-radius:30px;background:#2b2c2f;max-height:calc(100% - 230px - env(safe-area-inset-top,0px));overflow:auto;scrollbar-width:none}
+.cad-tools::-webkit-scrollbar{display:none}
+.ct{width:44px;height:44px;border-radius:50%;padding:0;border:0;background:transparent;color:#d8dde3;display:flex;align-items:center;justify-content:center;flex:none}
+.ct svg{width:24px;height:24px;pointer-events:none}
+.ct.on{background:#4aa3ff;color:#0e1522}
+.ct.sel.on{background:#fff;color:#1b1c1e}
+.ct:disabled{opacity:.35}
+.cd{width:30px;height:1px;background:#4a4d52;margin:4px 0;flex:none}
+.cad-bot{position:absolute;left:62px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:15;pointer-events:none;display:flex;flex-direction:column;gap:6px}
+.cad-bot>*{pointer-events:auto}
+.cad-bot .stat,.cad-bot .hint{margin:0;text-align:center;font-size:12px;color:#a3abb5;background:rgba(27,28,30,.72);border-radius:8px;padding:2px 8px;align-self:center}
+.cad-bar:empty{display:none}
+.cad-bar .selbar{margin:0}
+.cad-bar .grid{gap:6px}
+.cad-bar .add{margin-top:0}
+.minis{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.mini{display:flex;align-items:center;gap:2px;background:#2a2b2f;border:1px solid var(--line);border-radius:20px;padding:2px 4px 2px 10px}
+.mini span{font-size:15px;margin-right:2px}
+.mini b{min-width:22px;text-align:center}
+.mini button{width:34px;height:34px;padding:0;border-radius:50%;border:0;background:#3a3c40;font-size:18px}
+.cad.shopen .cad-canvas{bottom:50%}
+.cad.shopen .cad-bot{display:none}
+.cad-sheet{position:absolute;left:0;right:0;bottom:0;z-index:45;height:50%;display:flex;flex-direction:column;background:#26272a;border-radius:18px 18px 0 0;border-top:1px solid #3d4046;box-shadow:0 -8px 28px rgba(0,0,0,.5)}
+.sh-h{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px}
+.sh-x{width:36px;height:36px;padding:0;border-radius:50%;border:0;background:#3a3c40}
+.sh-b{overflow:auto;padding:0 14px calc(16px + env(safe-area-inset-bottom,0px))}
+.sh-b details.set{border:0;background:transparent;padding:0}
+.sh-b details.set summary{display:none}
+.rrow{display:flex;justify-content:space-between;width:100%;margin-bottom:6px;padding:12px;border-radius:10px;text-align:left}
+.rrow.on{border-color:var(--acc);background:var(--accbg);color:#fff}
+#pgEd .pl{stroke:none}
+#pgEd .vh{fill:#1b1c1e;stroke:#fff;stroke-width:2.5}
+#pgEd .wl-i{background:#2a2b2f;color:#fff;border:1px solid #5b5f66;border-radius:12px;padding:6px 2px}
+#pgEd .wl-i:focus{border-color:var(--acc);background:#1f3550}
+@media print{
+:root{color-scheme:light;--bg:#fff;--card:#fff;--ink:#000;--mute:#444;--line:#bbb;--acc:#0b7a75;--accbg:#dff1ef;--sum:#14213d;--sumink:#fff}
+.np{display:none!important}
+body{background:#fff}.card{border:0;padding:0}main{padding:0}
+}
+</style>
+<script>
+/* ===== ЛИЦЕНЗИЯ / ЖАЗЫЛЫМ: баптаулар (pub, api, contact, price) осы блоктың басында ===== */
+(function () {
+"use strict";
+
+/* ===================== БАПТАУЛАР ===================== */
+var LIC = {
+  // Ашық кілт (тек тексеру үшін). Жеке кілт қосымшада ЖОҚ.
+  pub: {"kty":"EC","crv":"P-256","x":"BF7u-PKDolKIa5e9flAPfAXbaBxBYbyCofhSdE9THAg","y":"u_T11t0Mj5me7aELR4L3sV9G_CuwUTqhIBIIh-sb9sI"},
+  // Лицензия кілтін алу туралы мәтін, құлыптау экранында көрсетіледі.
+  // Мысалы: "Kaspi: +7 7XX XXX XX XX · WhatsApp: +7 7XX XXX XX XX"
+  // Лицензия серверінің мекенжайы (Cloudflare Worker орнатылған соң қойыңыз), мысалы:
+  // "https://tobe-license.СІЗДІҢ-ПОЧТА.workers.dev". Бос болса, тек қолмен кілт енгізіледі.
+  api: "",
+  contact: "",
+  // Мысалы: "Айына 3 000 ₸"
+  price: ""
+};
+/* ====================================================== */
+// Негізгі скрипт 3D бөлісу үшін сервер мекенжайын осыдан алады
+if (typeof window !== "undefined") window.TOBE_CFG = { api: LIC.api };
+
+var LS_KEY = "tobe_lic", LS_SEEN = "tobe_ls", LS_DID = "tobe_did";
+var G = (typeof globalThis !== "undefined") ? globalThis : window;
+
+function b64uToBytes(s) {
+  s = String(s).replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  var b = atob(s), a = new Uint8Array(b.length);
+  for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i);
+  return a;
+}
+function normCode(c) { return String(c || "").toUpperCase().replace(/[^0-9A-Z]/g, ""); }
+function fmtCode(c) { return c.slice(0, 4) + "-" + c.slice(4); }
+function pad(n) { return (n < 10 ? "0" : "") + n; }
+function fmtDate(ms) { var d = new Date(ms); return pad(d.getDate()) + "." + pad(d.getMonth() + 1) + "." + d.getFullYear(); }
+
+async function sha8(id) {
+  var h = await G.crypto.subtle.digest("SHA-256", new TextEncoder().encode("tobe|" + id));
+  var a = new Uint8Array(h), s = "";
+  for (var i = 0; i < 4; i++) s += ("0" + a[i].toString(16)).slice(-2);
+  return s.toUpperCase();
+}
+
+async function verifyKey(key, code, now) {
+  if (!G.crypto || !G.crypto.subtle) return { ok: false, err: "Бұл ортада тексеру мүмкін емес" };
+  key = String(key || "").replace(/\s+/g, "");
+  var parts = key.split(".");
+  var bad = { ok: false, err: "Кілт форматы қате" };
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return bad;
+  var data, sig, p;
+  try {
+    data = b64uToBytes(parts[0]);
+    sig = b64uToBytes(parts[1]);
+    p = JSON.parse(new TextDecoder().decode(data));
+  } catch (e) { return bad; }
+  if (sig.length !== 64) return bad;
+  var good = false;
+  try {
+    var pk = await G.crypto.subtle.importKey("jwk", LIC.pub, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+    good = await G.crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, pk, sig, data);
+  } catch (e) { return { ok: false, err: "Кілтті тексеру қатесі" }; }
+  if (!good) return { ok: false, err: "Кілт жарамсыз" };
+  if (!p || p.v !== 1 || typeof p.e !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(p.e)) return bad;
+  if (normCode(p.d) !== code) return { ok: false, err: "Бұл кілт басқа құрылғыға арналған" };
+  var exp = new Date(p.e + "T23:59:59").getTime();
+  if (!(exp > 0)) return bad;
+  if (now > exp) return { ok: false, expired: true, name: p.n || "", exp: exp, err: "Жазылым мерзімі аяқталды (" + fmtDate(exp) + ")" };
+  return { ok: true, name: p.n || "", exp: exp, left: Math.ceil((exp - now) / 864e5) };
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { verifyKey: verifyKey, sha8: sha8, LIC: LIC, normCode: normCode };
+}
+if (typeof document === "undefined" || !document.documentElement) return;
+
+/* ===================== ИНТЕРФЕЙС ===================== */
+var html = document.documentElement;
+// 3D көру сілтемесі (?v=КОД): тек бөлменің 3D моделін көрсетеді, есептеу бөлімі ашылмайды
+if (/[?&]v=[A-Za-z0-9]{6,40}(&|$)/.test(location.search)) { html.classList.add("viewer"); return; }
+html.classList.add("lic-lock"); // тексерілгенше қосымша жабық
+var LS_ORD = "tobe_ord";
+
+var st = document.createElement("style");
+st.textContent =
+  "html.lic-lock main{display:none!important}" +
+  "#licBox{position:fixed;inset:0;z-index:99999;background:var(--bg);color:var(--ink);overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:16px}" +
+  "#licBox .lc{width:100%;max-width:460px;margin:6vh 0 24px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}" +
+  "#licBox h2{margin:0 0 6px;font-size:20px}" +
+  "#licBox p{margin:6px 0;color:var(--mute);font-size:14px}" +
+  "#licBox .code{font:700 26px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:2px;text-align:center;padding:12px;margin:10px 0 6px;border:1px dashed var(--acc);border-radius:8px;background:var(--accbg);color:var(--ink);user-select:all}" +
+  "#licBox textarea{width:100%;min-height:96px;font:13px/1.35 ui-monospace,Menlo,Consolas,monospace;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 10px;resize:vertical}" +
+  "#licBox button{font:inherit;padding:10px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}" +
+  "#licBox button.pr{background:#ffab00;color:#1b1c1e;border-color:#ffab00;font-weight:700;width:100%;margin-top:10px;border-radius:14px}" +
+  "#licBox button.plan{width:100%;margin-top:8px;background:#ffab00;color:#1b1c1e;border-color:#ffab00;font-weight:700;padding:14px 16px;display:flex;justify-content:space-between;border-radius:16px}" +
+  "#licBox .test{margin:8px 0;padding:8px 10px;border-radius:8px;background:#fff4d6;color:#7a5200;font-size:13px;font-weight:600}" +
+  "#licBox details{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}" +
+  "#licBox summary{cursor:pointer;color:var(--mute);font-size:14px}" +
+  "#licBox .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}" +
+  "#licBox .msg{min-height:20px;margin:8px 0 0;font-size:14px;font-weight:600}" +
+  "#licBox ol{margin:8px 0 8px 18px;padding:0;color:var(--mute);font-size:14px}";
+document.head.appendChild(st);
+
+var renewing = false, box = null, codeEl, msgEl, taEl, closeEl, plansEl, manualEl, introEl;
+var devCode = "", polling = null, polled = false, claiming = false, planData = null;
+
+async function getCode() {
+  if (devCode) return devCode;
+  var id = "";
+  try {
+    var C = G.Capacitor;
+    if (C && C.Plugins && C.Plugins.Device) {
+      var r = await C.Plugins.Device.getId();
+      id = (r && (r.identifier || r.uuid)) || "";
+    }
+  } catch (e) {}
+  if (!id) {
+    try {
+      id = localStorage.getItem(LS_DID);
+      if (!id) {
+        id = (G.crypto && G.crypto.randomUUID) ? G.crypto.randomUUID() : String(Math.random()).slice(2) + Date.now();
+        localStorage.setItem(LS_DID, id);
+      }
+    } catch (e) { id = "fallback"; }
+  }
+  devCode = await sha8(id);
+  return devCode;
+}
+
+function effectiveNow() {
+  var n = Date.now(), s = 0;
+  try { s = +localStorage.getItem(LS_SEEN) || 0; } catch (e) {}
+  if (n > s) { try { localStorage.setItem(LS_SEEN, String(n)); } catch (e) {} } else n = s;
+  return n;
+}
+
+function copyText(t) {
+  function fb() {
+    var a = document.createElement("textarea");
+    a.value = t; a.style.cssText = "position:fixed;opacity:0";
+    document.body.appendChild(a); a.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    a.remove();
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).catch(fb);
+  else fb();
+}
+
+function setMsg(t, good) {
+  if (!msgEl) return;
+  msgEl.textContent = t || "";
+  msgEl.style.color = good ? "var(--acc)" : "#d64545";
+}
+
+/* ---------- сервермен байланыс ---------- */
+function api(path, opts) {
+  if (!LIC.api) return Promise.reject(new Error("noapi"));
+  var ctl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, 12000);
+  opts = opts || {}; opts.signal = ctl.signal;
+  return fetch(LIC.api.replace(/\/+$/, "") + path, opts).then(function (r) {
+    return r.json().then(function (j) { clearTimeout(t); j._http = r.status; return j; });
+  }, function (e) { clearTimeout(t); throw e; });
+}
+
+function openUrl(u) {
+  try {
+    var C = G.Capacitor;
+    if (C && C.Plugins && C.Plugins.Browser) { C.Plugins.Browser.open({ url: u }); return; }
+  } catch (e) {}
+  window.open(u, "_blank");
+}
+
+function getOrd() { try { return JSON.parse(localStorage.getItem(LS_ORD) || "null"); } catch (e) { return null; } }
+
+async function applyKey(k) {
+  var code = await getCode();
+  var r = await verifyKey(k, code, effectiveNow());
+  if (!r.ok) return r;
+  try { localStorage.setItem(LS_KEY, k); }
+  catch (e) { return { ok: false, err: "Кілтті сақтау мүмкін болмады" }; }
+  return r;
+}
+
+function finish() {
+  stopPoll();
+  try { localStorage.removeItem(LS_ORD); } catch (e) {}
+  renewing = false;
+  setMsg("Белсендірілді ✓", true);
+  check();
+}
+
+async function claimOrder() {
+  if (!LIC.api) return "";
+  var ord = getOrd();
+  if (!ord) return "";
+  var code = await getCode();
+  if (ord.device !== code) return "";
+  try {
+    var c = await api("/claim?order=" + ord.id + "&device=" + code);
+    if (c.status === "paid") return c.key;
+    if (c._http === 404) { try { localStorage.removeItem(LS_ORD); } catch (e) {} }
+  } catch (e) {}
+  return "";
+}
+
+async function pollOnce() {
+  if (polled) return;
+  polled = true;
+  try {
+    var k = await claimOrder();
+    if (k) { var r = await applyKey(k); if (r.ok) finish(); }
+  } catch (e) {}
+  polled = false;
+}
+function startPoll() {
+  stopPoll();
+  var n = 0;
+  polling = setInterval(function () {
+    if (++n > 400) { // ~20 минут
+      stopPoll();
+      setMsg("Төлем расталмады. Төлесеңіз, қосымшаны қайта ашыңыз: кілт автоматты түседі.", false);
+      return;
+    }
+    pollOnce();
+  }, 3000);
+}
+function stopPoll() { if (polling) { clearInterval(polling); polling = null; } }
+
+// Қосымша жабық күйде ашылғанда: төленген тапсырыс немесе серверде жарамды лицензия бар ма
+async function autoClaim() {
+  if (!LIC.api || claiming) return;
+  claiming = true;
+  try {
+    var key = await claimOrder();
+    if (!key) {
+      var code = await getCode();
+      var s = await api("/restore?device=" + code);
+      if (s.status === "active") key = s.key;
+    }
+    if (key) { var r = await applyKey(key); if (r.ok) finish(); }
+  } catch (e) {}
+  claiming = false;
+}
+
+async function pay(id) {
+  setMsg("Төлем беті ашылуда…", true);
+  try {
+    var code = await getCode();
+    var r = await api("/order", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ device: code, plan: id }) });
+    if (!r.order || !r.payUrl) {
+      setMsg(r.error === "provider_not_configured" ? "Төлем әзірге қосылмаған" : "Тапсырыс жасалмады", false);
+      return;
+    }
+    try { localStorage.setItem(LS_ORD, JSON.stringify({ id: r.order, device: code })); } catch (e) {}
+    openUrl(r.payUrl);
+    setMsg("Төлемді аяқтап, осында қайтыңыз: кілт автоматты түседі…", true);
+    startPoll();
+  } catch (e) {
+    setMsg("Серверге қосылу мүмкін болмады. Интернетті тексеріңіз", false);
+  }
+}
+
+async function loadPlans() {
+  plansEl.textContent = "";
+  if (!LIC.api) { plansEl.hidden = true; manualEl.open = true; manualEl.querySelector("summary").hidden = true; introEl.textContent = "Қосымшаны пайдалану үшін лицензия кілтін енгізіңіз."; return; }
+  plansEl.hidden = false;
+  try {
+    var d = planData || (planData = await api("/plans"));
+    if (!d.plans || !d.plans.length) throw new Error("empty");
+    if (d.mode === "test") {
+      var tb = document.createElement("div"); tb.className = "test";
+      tb.textContent = "ТЕСТ РЕЖИМІ: нақты төлем жоқ, төлем беті тек тексеру үшін.";
+      plansEl.appendChild(tb);
+    }
+    d.plans.forEach(function (p) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "plan";
+      var a = document.createElement("span"); a.textContent = p.title;
+      var c = document.createElement("span"); c.textContent = Number(p.price).toLocaleString("ru-RU") + " ₸";
+      b.appendChild(a); b.appendChild(c);
+      b.addEventListener("click", function () { pay(p.id); });
+      plansEl.appendChild(b);
+    });
+  } catch (e) {
+    planData = null;
+    var rb = document.createElement("button");
+    rb.type = "button"; rb.textContent = "Пакеттерді жүктеу мүмкін болмады. Қайталау";
+    rb.addEventListener("click", loadPlans);
+    plansEl.appendChild(rb);
+  }
+}
+
+function build() {
+  box = document.createElement("div");
+  box.id = "licBox";
+  box.innerHTML =
+    '<div class="lc">' +
+    '<h2>Жазылым қажет</h2>' +
+    '<p id="licIntro">Қосымшаны пайдалану үшін жазылымды таңдаңыз.</p>' +
+    '<div id="licPlans"></div>' +
+    '<div class="msg" id="licMsg"></div>' +
+    '<details id="licManual"><summary>Кілтім бар (қолмен белсендіру)</summary>' +
+    '<ol><li>Төмендегі құрылғы кодын сатушыға жіберіңіз.</li><li>Алған кілтті өріске қойып, «Белсендіру» басыңыз.</li></ol>' +
+    '<div class="code" id="licCode">…</div>' +
+    '<div class="row"><button type="button" id="licCopy">Кодты көшіру</button></div>' +
+    '<p id="licContact" style="text-align:center"></p>' +
+    '<textarea id="licKey" placeholder="Кілтті осында қойыңыз" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>' +
+    '<button type="button" class="pr" id="licGo">Белсендіру</button></details>' +
+    '<div class="row" style="margin-top:10px"><button type="button" id="licClose" hidden>Жабу</button></div>' +
+    '</div>';
+  document.body.appendChild(box);
+  codeEl = box.querySelector("#licCode");
+  msgEl = box.querySelector("#licMsg");
+  taEl = box.querySelector("#licKey");
+  closeEl = box.querySelector("#licClose");
+  plansEl = box.querySelector("#licPlans");
+  manualEl = box.querySelector("#licManual");
+  introEl = box.querySelector("#licIntro");
+  var ct = [LIC.price, LIC.contact].filter(Boolean).join(" · ");
+  box.querySelector("#licContact").textContent = ct;
+  box.querySelector("#licCopy").addEventListener("click", function () {
+    copyText(devCode); setMsg("Код көшірілді", true);
+  });
+  closeEl.addEventListener("click", hide);
+  box.querySelector("#licGo").addEventListener("click", activate);
+}
+
+function show(msg, closable) {
+  var first = !box;
+  if (first) build();
+  renewing = !!closable;
+  box.style.display = "flex";
+  closeEl.hidden = !closable;
+  if (msg || first) setMsg(msg || "", false);
+  getCode().then(function (c) { codeEl.textContent = fmtCode(c); });
+  if (first || !plansEl.children.length) loadPlans();
+}
+function hide() { renewing = false; stopPoll(); if (box) box.style.display = "none"; }
+
+async function activate() {
+  var k = taEl.value.replace(/\s+/g, "");
+  if (!k) { setMsg("Кілтті енгізіңіз", false); return; }
+  var r = await applyKey(k);
+  if (!r.ok) { setMsg(r.err, false); return; }
+  taEl.value = "";
+  finish();
+}
+
+function showInfo(r) {
+  var el = document.getElementById("licInfo");
+  if (!el) {
+    var host = document.querySelector("#pgCalc .sub");
+    if (!host || !host.parentNode) return;
+    el = document.createElement("div");
+    el.id = "licInfo";
+    el.style.cssText = "font-size:13px;margin:-4px 0 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap";
+    host.parentNode.insertBefore(el, host.nextSibling);
+  }
+  el.style.color = r.left <= 5 ? "#b45309" : "var(--mute)";
+  el.textContent = "";
+  var t = document.createElement("span");
+  t.textContent = "Жазылым" + (r.name ? ": " + r.name : "") + " · " + fmtDate(r.exp) + " дейін (" + r.left + " күн)";
+  var b = document.createElement("button");
+  b.type = "button"; b.textContent = "Ұзарту";
+  b.style.cssText = "font:inherit;padding:3px 10px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer";
+  b.addEventListener("click", function () { show("", true); });
+  el.appendChild(t); el.appendChild(b);
+}
+
+async function check() {
+  var code = await getCode(), key = "";
+  try { key = localStorage.getItem(LS_KEY) || ""; } catch (e) {}
+  var r = key ? await verifyKey(key, code, effectiveNow()) : { ok: false };
+  if (r.ok) {
+    html.classList.remove("lic-lock");
+    if (!renewing) hide();
+    showInfo(r);
+  } else {
+    html.classList.add("lic-lock");
+    show(key ? r.err : "", false);
+    autoClaim();
+  }
+}
+
+function start() { check(); }
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
+else start();
+document.addEventListener("visibilitychange", function () {
+  if (document.hidden) return;
+  check();
+  if (box && box.style.display !== "none") pollOnce();
+});
+setInterval(check, 5 * 60 * 1000);
+})();
+</script>
+</head>
+<body>
+<main>
+<div class="np">
+<div class="tabs pgnav" id="pgnav"><button type="button" data-pg="calc" class="on">Есептеу</button><button type="button" data-pg="ed">Редактор · 2D / 3D</button></div>
+<div id="pgCalc">
+<h1>Төбе калькуляторы</h1>
+<p class="sub">Керіліп тартылатын төбенің ауданын, пішуін және бағасын есептеңіз.</p>
+
+<h2>Материалдар анықтамалығы</h2>
+<div class="card"><div id="cat"></div>
+<button class="add" id="addc" type="button">Материал қосу</button></div>
+
+<h2>Профиль түрлері</h2>
+<div class="card"><div id="ptypes"></div>
+<button class="add" id="addpt" type="button">Профиль түрін қосу</button></div>
+
+<h2>Бөлмелер</h2>
+<div class="card"><div id="rooms"></div>
+<button class="add" id="add" type="button">Бөлме қосу</button></div>
+
+<h2>Бағалар, ₸ және кесу</h2>
+<div class="card grid">
+<div><label for="sh">Тартылу (пішуде кішірейту), %</label><input id="sh" data-g="sh" type="number" inputmode="decimal" min="0" max="30" step="0.5"></div>
+<div><label for="cp">Люстра, ₸/дана</label><input id="cp" data-g="cp" type="number" inputmode="decimal" min="0"></div>
+<div><label for="spot">Шам (спот), ₸/дана</label><input id="spot" data-g="spot" type="number" inputmode="decimal" min="0"></div>
+<div><label for="mont">Монтаж, ₸/м²</label><input id="mont" data-g="mont" type="number" inputmode="decimal" min="0"></div>
+<div><label for="roll">Тоқыма (орам) ені, м</label><input id="roll" data-g="roll" type="number" inputmode="decimal" min="0.5" step="0.1"></div>
+<div><label for="trk">Трек (шинопровод), ₸/м</label><input id="trk" data-g="trk" type="number" inputmode="decimal" min="0"></div>
+<div><label for="glow">Подсветка, ₸/м</label><input id="glow" data-g="glow" type="number" inputmode="decimal" min="0"></div>
+<div><label for="cw">Скрытый еврокарниз, ₸/м</label><input id="cw" data-g="cw" type="number" inputmode="decimal" min="0"></div>
+</div>
+
+<h2>Қосымша материалдар</h2>
+<div class="card"><div id="ex"></div>
+<button class="add" id="adde" type="button">Қосымша материал қосу</button></div>
+
+<section class="total" aria-live="polite">
+<div>Жалпы құны</div>
+<div class="big" id="grand">0 ₸</div>
+<table id="rows"></table>
+</section>
+
+<h2>Коммерциялық ұсыныс (КП)</h2>
+<div class="card grid">
+<div><label for="cl">Тапсырыс беруші</label><input id="cl" data-g="client" type="text"></div>
+<div><label for="co">Компания / шебер</label><input id="co" data-g="company" type="text"></div>
+</div>
+</div>
+<div id="pgEd" hidden>
+<div class="cad-top"><div class="cad-row"><button type="button" class="cb" data-back="1" aria-label="Артқа"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><span class="cad-sp"></span><button type="button" class="cb" data-sheet="rooms" aria-label="Бөлмелер"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button><button type="button" class="cb" data-sheet="panel" aria-label="Параметрлер"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button><div class="cb-wrap"><button type="button" class="cb" data-menu="1" aria-label="Қосымша"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/></svg></button><div id="cadMenu" hidden><button type="button" data-radd="1">＋ Бөлме қосу</button><button type="button" data-rmask="1">🗑 Бөлмені өшіру</button><button type="button" data-clean="1">Артық нүктелерді тазалау</button></div></div><button type="button" class="cb save" data-save="1" aria-label="Сақтау"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l4 4v14H5z"/><path d="M8 3v6h8V3"/><rect x="8" y="14" width="8" height="7"/></svg></button></div><div class="seg cad-seg" id="vtabs"><button type="button" data-vw="an">Өлшем</button><button type="button" data-vw="2d" class="on">Сызба</button><button type="button" data-vw="3d">3D</button></div></div><div id="rmdel"></div>
+<div id="ed2d"></div>
+<div id="ed3d" hidden>
+<div class="v3" id="v3"><div class="dpad"><span></span><button type="button" data-k="w" aria-label="Алға"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button><span></span><button type="button" data-k="a" aria-label="Солға"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><button type="button" data-k="s" aria-label="Артқа"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><button type="button" data-k="d" aria-label="Оңға"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></div></div>
+<div class="v3top"><select id="v3room" aria-label="Бөлме"></select></div>
+<button type="button" class="v3share" id="v3share" aria-label="Бөлісу"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
+<label class="v3gain" for="v3gain" title="Жарық қарқыны"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg><input id="v3gain" type="range" min="0" max="100" step="5" aria-label="Жарық қарқыны"></label>
+<div class="v3hint">Айналдыру: сүйреңіз · жүру: W A S D (немесе батырмалар)</div>
+</div>
+<div id="shSheet" hidden><div class="sh-box" role="dialog" aria-modal="true" aria-labelledby="shT">
+<b id="shT"></b><p id="shM"></p>
+<input id="shU" type="text" readonly spellcheck="false" aria-label="Сілтеме" hidden>
+<div class="sh-row"><button type="button" class="pr" data-sh="copy" hidden>Көшіру</button><button type="button" data-sh="share" hidden>Бөлісу</button></div>
+<div class="sh-row"><button type="button" data-sh="wa" hidden>WhatsApp</button><button type="button" data-sh="tg" hidden>Telegram</button></div>
+<div class="sh-row"><button type="button" data-sh="close">Жабу</button></div>
+</div></div>
+</div>
+</div>
+
+<div id="pgCalcB">
+<section class="card kp" id="kp"></section>
+<button class="pr np" id="print" type="button">КП-ны PDF сақтау</button>
+<p class="note np">Сызбадағы шамдарды (●) және люстраны (◎) саусақпен немесе тінтуірмен сүйреп жылжытуға болады. «3D» қойындысы бөлмені бұрыштан көрсетеді. «PDF сақтау» батырмасы КП-ны KP.pdf файлы ретінде жүктейді. Баға мен тартылу пайызын өз материалыңыздың өндірушісінен нақтылаңыз.</p>
+</div>
+</main>
+
+<script src="lib/three.min.js"></script>
+<script>window.THREE||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>')</script>
+<script src="lib/html2canvas.min.js"></script>
+<script>window.html2canvas||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>')</script>
+<script src="lib/jspdf.umd.min.js"></script>
+<script>window.jspdf||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>')</script>
+<script>
+var D={
+cat:[{n:"Мат",p:3000},{n:"Глянец",p:3500},{n:"Сатин",p:3800}],
+ptypes:[{n:"Қабырғалық (стеновой)",p:1200},{n:"Теңіз профилі (теневой)",p:2200},{n:"Парашют профилі",p:2600}],
+cp:8000,spot:2500,mont:1500,roll:3.2,trk:4500,glow:3000,cw:6000,gr:{snap:true,step:.1,ortho:true,axes:true},sh:7,client:"",company:"",
+ex:[{n:"Жарық сызығы, м",p:9000,q:0},{n:"Перде гардина, м",p:3500,q:0}],
+rooms:[{n:"Қонақ бөлме",m:1,pf:[{t:0,len:15}],
+  poly:[{x:0,y:0},{x:4,y:0},{x:4,y:3.5},{x:0,y:3.5}],
+  lights:[{x:1,y:1},{x:3,y:1},{x:1,y:2.5},{x:3,y:2.5}],
+  chand:{on:true,pts:[{x:2,y:1.75}]},view:"2d"}]
+};
+var VIEW=(function(){var m=/[?&]v=([A-Za-z0-9]{6,40})(?:&|$)/.exec(location.search||"");return m?m[1]:""})(); // 3D көру режимі (сілтеме ?v=КОД)
+var S=D;
+try{
+  var raw=localStorage.getItem("tobe-v3");
+  if(raw){S=JSON.parse(raw);if(!S.rooms||!S.cat)S=D;}
+  if(!S.ex)S.ex=D.ex;if(!S.gr)S.gr=D.gr;if(S.gain===undefined)S.gain=40;if(S.cw===undefined)S.cw=6000;
+  if(!S.ptypes)S.ptypes=D.ptypes;['spot','mont','roll','trk','glow'].forEach(function(k){if(!(k in S))S[k]=D[k]});
+  S.rooms.forEach(function(r){
+    if(!r.pf)r.pf=[{t:0,len:0}];
+    if(!r.poly||r.poly.length<3)r.poly=[{x:0,y:0},{x:3,y:0},{x:3,y:3},{x:0,y:3}];
+    if(!r.lights)r.lights=[];
+    if(!r.chand)r.chand={on:false,pts:[]};if(r.chand.pts===undefined){r.chand.pts=(r.chand.on&&r.chand.x!==undefined)?[{x:r.chand.x,y:r.chand.y}]:[];delete r.chand.x;delete r.chand.y;}if(!r.trks){r.trks=(r.trk&&r.trk.on)?[{o:r.trk.o,f:r.trk.f,len:r.trk.len}]:[];delete r.trk;}r.trks.forEach(function(t){if(t.cx===undefined){var b=bbox(r.poly),f=Math.min(Math.max(+t.f||50,0),100)/100;if(t.o==="y"){t.cx=b.minX+f*(b.maxX-b.minX);t.cy=(b.minY+b.maxY)/2}else{t.cx=(b.minX+b.maxX)/2;t.cy=b.minY+f*(b.maxY-b.minY)}}delete t.f});if(!r.gl){r.gl=(r.glow&&r.glow.on)?r.poly.map(function(p,i){return{e:i,a:0,b:1}}):[];}delete r.glow;if(!r.cw)r.cw=[];
+    if(!r.view)r.view="2d";if(!r.h)r.h=2.6;if(!r.color)r.color="#ffffff";if(!r.dim)r.dim={s:"r",l:4,w:3.5,a:1.5,b:1};r.mode=(!r.mode||r.mode==="draw")?"pts":r.mode;r.draw=null;
+  });
+}catch(e){S=D}
+function save(){if(VIEW)return;try{localStorage.setItem("tobe-v3",JSON.stringify(S,function(k,v){return(k==="hist"||k==="fut")?undefined:v}))}catch(e){}}
+var $=function(id){return document.getElementById(id)};
+var fmt=function(n,d){return n.toLocaleString("ru-RU",{minimumFractionDigits:d||0,maximumFractionDigits:d||0})};
+var pos=function(v){v=parseFloat(v);return isFinite(v)&&v>0?v:0};
+var num=function(v){v=parseFloat(v);return isFinite(v)?v:0};
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+
+function polyArea(poly){
+  var a=0;
+  for(var i=0;i<poly.length;i++){var p=poly[i],q=poly[(i+1)%poly.length];a+=p.x*q.y-q.x*p.y}
+  return Math.abs(a)/2;
+}
+function polyPerimeter(poly){
+  var p=0;
+  for(var i=0;i<poly.length;i++){var a=poly[i],b=poly[(i+1)%poly.length];p+=Math.hypot(b.x-a.x,b.y-a.y)}
+  return p;
+}
+function bbox(poly){
+  var xs=poly.map(function(p){return p.x}),ys=poly.map(function(p){return p.y});
+  return{minX:Math.min.apply(0,xs),maxX:Math.max.apply(0,xs),minY:Math.min.apply(0,ys),maxY:Math.max.apply(0,ys)};
+}
+function pointInPoly(poly,x,y){
+  var inside=false;
+  for(var i=0,j=poly.length-1;i<poly.length;j=i++){
+    var xi=poly[i].x,yi=poly[i].y,xj=poly[j].x,yj=poly[j].y;
+    var int=((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi);
+    if(int)inside=!inside;
+  }
+  return inside;
+}
+function clampToPoly(poly,x,y){
+  if(pointInPoly(poly,x,y))return{x:x,y:y};
+  var bb=bbox(poly),cx=(bb.minX+bb.maxX)/2,cy=(bb.minY+bb.maxY)/2;
+  for(var t=0.95;t>0;t-=0.05){var nx=cx+(x-cx)*t,ny=cy+(y-cy)*t;if(pointInPoly(poly,nx,ny))return{x:nx,y:ny}}
+  return{x:cx,y:cy};
+}
+
+function drawPTypes(){
+  var h="";
+  S.ptypes.forEach(function(x,i){
+    h+='<div class="pf" style="grid-template-columns:1fr 90px auto"><div><label>Атауы</label><input type="text" value="'+esc(x.n)+'" data-pt="'+i+'" data-k="n"></div>'+
+    '<div><label>₸/м</label><input type="number" inputmode="decimal" min="0" value="'+x.p+'" data-pt="'+i+'" data-k="p"></div>'+
+    '<button class="del" type="button" data-dpt="'+i+'" aria-label="Профиль түрін жою"'+(S.ptypes.length<2?' disabled':'')+'>✕</button></div>';
+  });
+  $("ptypes").innerHTML=h;
+}
+
+function drawCat(){
+  var h="";
+  S.cat.forEach(function(c,i){
+    h+='<div class="cat"><div><label>Атауы</label><input type="text" value="'+esc(c.n)+'" data-c="'+i+'" data-k="n"></div>'+
+    '<div><label>₸/м²</label><input type="number" inputmode="decimal" min="0" value="'+c.p+'" data-c="'+i+'" data-k="p"></div>'+
+    '<button class="del" type="button" data-dc="'+i+'" aria-label="Материалды жою"'+(S.cat.length<2?' disabled':'')+'>✕</button></div>';
+  });
+  $("cat").innerHTML=h;
+}
+
+function drawEx(){
+  var h="";
+  S.ex.forEach(function(x,i){
+    h+='<div class="ex"><div><label>Атауы</label><input type="text" value="'+esc(x.n)+'" data-e="'+i+'" data-k="n"></div>'+
+    '<div><label>Бағасы, ₸</label><input type="number" inputmode="decimal" min="0" value="'+x.p+'" data-e="'+i+'" data-k="p"></div>'+
+    '<div><label>Саны</label><input type="number" inputmode="decimal" min="0" step="0.1" value="'+x.q+'" data-e="'+i+'" data-k="q"></div>'+
+    '<button class="del" type="button" data-de="'+i+'" aria-label="Материалды жою">✕</button></div>';
+  });
+  $("ex").innerHTML=h||'<div class="info">Тізім бос. Төмендегі батырмамен қосыңыз.</div>';
+}
+
+// ---- 2D plan editor ----
+function distSeg(w,a,b){
+  var dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy,t=l2?((w.x-a.x)*dx+(w.y-a.y)*dy)/l2:0;
+  t=Math.max(0,Math.min(1,t));return Math.hypot(w.x-(a.x+t*dx),w.y-(a.y+t*dy));
+}
+function setLights(r,n){
+  if(n<r.lights.length){r.lights=r.lights.slice(0,n);return}
+  var bb=bbox(r.poly),pw=bb.maxX-bb.minX,ph=Math.max(bb.maxY-bb.minY,.1),need=n-r.lights.length;
+  for(var k=n;k<=n*6+6&&need>0;k++){
+    var cols=Math.max(1,Math.ceil(Math.sqrt(k*pw/ph))),rows=Math.max(1,Math.ceil(k/cols));
+    for(var j=0;j<rows&&need>0;j++)for(var i=0;i<cols&&need>0;i++){
+      var x=bb.minX+(i+.5)/cols*pw,y=bb.minY+(j+.5)/rows*ph;
+      if(!pointInPoly(r.poly,x,y))continue;
+      if(r.lights.some(function(q){return Math.hypot(q.x-x,q.y-y)<.35}))continue;
+      r.lights.push({x:+x.toFixed(2),y:+y.toFixed(2)});need--;
+    }
+  }
+}
+var GPRE=null,GUIDE=null;
+function axisSnap(r,d,w,sc){
+  var g=S.gr||{};if(g.axes===false)return{x:w.x,y:w.y,gx:null,gy:null};
+  var xs=[],ys=[],bq=bbox(r.poly);xs.push((bq.minX+bq.maxX)/2);ys.push((bq.minY+bq.maxY)/2);
+  r.lights.forEach(function(p,i){if(!(d.kind==="light"&&i===d.idx)){xs.push(p.x);ys.push(p.y)}});
+  if(r.chand&&r.chand.on)(r.chand.pts||[]).forEach(function(p,i){if(!(d.kind==="chand"&&i===d.idx)){xs.push(p.x);ys.push(p.y)}});
+  (r.trks||[]).forEach(function(t,i){if(!(d.kind==="trk"&&i===d.idx)){xs.push(t.cx);ys.push(t.cy)}});
+  var th=10/sc,gx=null,gy=null,bx=th,by=th;
+  xs.forEach(function(v){var q=Math.abs(v-w.x);if(q<bx){bx=q;gx=v}});
+  ys.forEach(function(v){var q=Math.abs(v-w.y);if(q<by){by=q;gy=v}});
+  return{x:gx!==null?+gx.toFixed(3):w.x,y:gy!==null?+gy.toFixed(3):w.y,gx:gx!==null?+gx.toFixed(3):null,gy:gy!==null?+gy.toFixed(3):null};
+}
+function setGuide(ri,ax,fx,fy){GUIDE={ri:ri,x:(ax.gx!==null&&Math.abs(fx-ax.gx)<.006)?ax.gx:null,y:(ax.gy!==null&&Math.abs(fy-ax.gy)<.006)?ax.gy:null};if(GUIDE.x===null&&GUIDE.y===null)GUIDE=null}
+var WK=["gl","cw"];
+function glLen(r,k){k=k||"gl";var n=r.poly.length,t=0;(r[k]||[]).forEach(function(g){var A=r.poly[g.e],B=r.poly[(g.e+1)%n];if(A&&B)t+=Math.hypot(B.x-A.x,B.y-A.y)*(g.b-g.a)});return t}
+function glMerge(r,e,k){
+  k=k||"gl";r[k]=r[k]||[];
+  var list=r[k].filter(function(g){return g.e===e}).sort(function(x,y){return x.a-y.a}),rest=r[k].filter(function(g){return g.e!==e}),out=[];
+  list.forEach(function(g){var l=out[out.length-1];if(l&&g.a<=l.b+1e-6)l.b=Math.max(l.b,g.b);else out.push({e:e,a:g.a,b:g.b})});
+  r[k]=rest.concat(out);
+}
+function glSplit(r,e){WK.forEach(function(k){r[k]=(r[k]||[]).filter(function(g){return g.e!==e}).map(function(g){return{e:g.e>e?g.e+1:g.e,a:g.a,b:g.b}})})}
+function glDel(r,vi){var n=r.poly.length;WK.forEach(function(k){r[k]=(r[k]||[]).filter(function(g){return g.e!==vi&&g.e!==(vi-1+n)%n}).map(function(g){return{e:g.e>vi?g.e-1:g.e,a:g.a,b:g.b}})})}
+function glT(r,ei,w){
+  var A=r.poly[ei],B=r.poly[(ei+1)%r.poly.length],dx=B.x-A.x,dy=B.y-A.y,L2=dx*dx+dy*dy||1e-9,L=Math.sqrt(L2);
+  var t=Math.max(0,Math.min(1,((w.x-A.x)*dx+(w.y-A.y)*dy)/L2)),g=S.gr||{};
+  if(g.snap&&g.step){var st=g.step;if((1-t)*L<st/2)t=1;else t=Math.max(0,Math.min(1,Math.round(t*L/st)*st/L))}
+  return t;
+}
+function glowMove(e){
+  var d=dragState,r=S.rooms[d.ri],w=toWorld(d.ri,e,d.fr),A=r.poly[d.e],B=r.poly[(d.e+1)%r.poly.length];
+  GPRE={ri:d.ri,e:d.e,a:d.t0,b:glT(r,d.e,w),key:d.key};
+  if(Math.abs(GPRE.b-GPRE.a)*Math.hypot(B.x-A.x,B.y-A.y)>=.05)d.moved=true;
+  renderPlan(d.ri,d.fr);
+}
+function glowFinish(d){
+  var r=S.rooms[d.ri],pre=GPRE,k=d.key||"gl";GPRE=null;pushHist(r);r[k]=r[k]||[];
+  if(d.moved&&pre){var a=Math.min(pre.a,pre.b),b=Math.max(pre.a,pre.b);if(b-a>1e-4){r[k].push({e:d.e,a:a,b:b});glMerge(r,d.e,k)}}
+  else{var hit=-1;r[k].forEach(function(g,j){if(g.e===d.e&&d.t0>=g.a-1e-4&&d.t0<=g.b+1e-4)hit=j});
+    if(hit>=0)r[k].splice(hit,1);else{r[k].push({e:d.e,a:0,b:1});glMerge(r,d.e,k)}}
+  drawRooms();
+}
+function pushHist(r){r.hist=r.hist||[];r.hist.push(JSON.stringify({p:r.poly,l:r.lights,c:r.chand,g:r.gl,w:r.cw,t:r.trks}));if(r.hist.length>50)r.hist.shift();r.fut=[]}
+function histStep(ri,redo){
+  var r=S.rooms[ri];r.hist=r.hist||[];r.fut=r.fut||[];
+  var src=redo?r.fut:r.hist,dst=redo?r.hist:r.fut;if(!src.length)return;
+  dst.push(JSON.stringify({p:r.poly,l:r.lights,c:r.chand,g:r.gl,w:r.cw,t:r.trks}));
+  var st=JSON.parse(src.pop());r.poly=st.p;r.lights=st.l;E.sel=null;E.pick=null;E.delAsk=false;r.chand=st.c;if(st.g)r.gl=st.g;if(st.w)r.cw=st.w;if(st.t)r.trks=st.t;drawRooms();
+}
+function snapW(w,sc,prev,nbs){
+  var g=S.gr||{snap:true,step:.1,ortho:true},x=w.x,y=w.y,st=g.step||.1;
+  if(g.snap){x=Math.round(x/st)*st;y=Math.round(y/st)*st}
+  if(g.ortho&&prev){if(Math.abs(w.x-prev.x)>=Math.abs(w.y-prev.y))y=prev.y;else x=prev.x}
+  if(g.ortho&&nbs)nbs.forEach(function(n){if(Math.abs(x-n.x)*sc<10)x=n.x;if(Math.abs(y-n.y)*sc<10)y=n.y});
+  return{x:+x.toFixed(2),y:+y.toFixed(2)};
+}
+function drawCount(ri){var el=$("dh"+ri);if(el)el.textContent="Нүкте: "+((S.rooms[ri].draw||[]).length)}
+function closeDraw(ri){
+  var r=S.rooms[ri];if(!r.draw||r.draw.length<3)return;pushHist(r);r.gl=[];r.cw=[];
+  r.poly=r.draw.slice();r.draw=null;r.mode="pts";
+  r.lights=r.lights.map(function(p){return clampToPoly(r.poly,p.x,p.y)});
+  if(r.chand&&r.chand.pts)r.chand.pts=r.chand.pts.map(function(p){return clampToPoly(r.poly,p.x,p.y)});
+  drawRooms();
+}
+function newTrk(r,k){
+  var bb=bbox(r.poly),tc=clampToPoly(r.poly,(bb.minX+bb.maxX)/2,(bb.minY+bb.maxY)/2+r.trks.length*.5);
+  r.trks.push({o:"x",cx:tc.x,cy:tc.y,len:Math.min(2.5,Math.max(.5,bb.maxX-bb.minX-.4)),k:k==="r"?"r":"s",c:k==="r"?"w":"b",ll:.6});
+}
+function trkRow(i,t,ti){
+  var rec=t.k==="r",wh=(t.c||(rec?"w":"b"))==="w",at='data-trki="'+i+'" data-tj="'+ti+'"',ll=+t.ll===.3?"0.3":"0.6";
+  return'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">'+
+    '<div class="grid" style="grid-template-columns:1fr 1fr auto;align-items:end">'+
+    '<div><label>Түрі</label><select '+at+' data-trkk="k"><option value="s"'+(rec?"":" selected")+'>Накладной</option><option value="r"'+(rec?" selected":"")+'>Встроенный</option></select></div>'+
+    '<div><label>Бағыты</label><select '+at+' data-trkk="o"><option value="x"'+(t.o==="y"?"":" selected")+'>Ұзындығы бойымен</option><option value="y"'+(t.o==="y"?" selected":"")+'>Ені бойымен</option></select></div>'+
+    '<button class="del" type="button" data-dtrk="'+i+'-'+ti+'" aria-label="Трек жою">✕</button></div>'+
+    '<div class="grid" style="grid-template-columns:'+(rec?'1fr 1fr 1fr':'1fr 1fr')+';margin-top:6px">'+
+    '<div><label>Ұзындығы, м</label><input type="number" inputmode="decimal" min="0.3" step="0.1" value="'+t.len+'" '+at+' data-trkk="len"></div>'+
+    '<div><label>Трек түсі</label><select '+at+' data-trkk="c"><option value="b"'+(wh?"":" selected")+'>Қара</option><option value="w"'+(wh?" selected":"")+'>Ақ</option></select></div>'+
+    (rec?'<div><label>Шам ұзындығы</label><select '+at+' data-trkk="ll"><option value="0.3"'+(ll==="0.3"?" selected":"")+'>30 см</option><option value="0.6"'+(ll==="0.6"?" selected":"")+'>60 см</option></select></div>':'')+
+    '</div><div class="hint" style="margin-top:4px">'+(rec?'Төбеге ендіріледі · ұзын сызықтық шамдар (30 / 60 см)':'Төбеге бекітіледі · шамдар салбырап тұрады')+'</div></div>';
+}
+function trkSeg(r,t){
+  var b=bbox(r.poly),l=b.maxX-b.minX,w=b.maxY-b.minY,cc=clampToPoly(r.poly,t.cx,t.cy),a,c,ln;
+  if(t.o==="y"){ln=Math.max(.1,Math.min(+t.len||0,w-.2))/2;a=clampToPoly(r.poly,cc.x,cc.y-ln);c=clampToPoly(r.poly,cc.x,cc.y+ln)}
+  else{ln=Math.max(.1,Math.min(+t.len||0,l-.2))/2;a=clampToPoly(r.poly,cc.x-ln,cc.y);c=clampToPoly(r.poly,cc.x+ln,cc.y)}
+  return{a:a,b:c,len:Math.hypot(c.x-a.x,c.y-a.y)};
+}
+function planWidth(ri){var el=$("plan"+ri),w=el&&el.clientWidth;return Math.max(300,Math.min(Math.round(w)||320,980))}
+function planMaxH(W){
+  var h=Math.round(W*.9);
+  if(document.body.classList.contains("edfull")){var ah=Math.round((window.innerHeight||700)-270);if(E.sheet)ah=Math.round((window.innerHeight||700)*.5-182);h=Math.max(220,Math.min(ah,Math.round(W*2.2)))}
+  return h;
+}
+function offPoly(pts,d){
+  var n=pts.length,A=0,k;
+  for(k=0;k<n;k++){var p=pts[k],q=pts[(k+1)%n];A+=p[0]*q[1]-q[0]*p[1]}
+  var sg=A>=0?1:-1,out=[];
+  for(k=0;k<n;k++){
+    var a=pts[(k-1+n)%n],b=pts[k],c=pts[(k+1)%n];
+    var d1x=b[0]-a[0],d1y=b[1]-a[1],l1=Math.hypot(d1x,d1y)||1,d2x=c[0]-b[0],d2y=c[1]-b[1],l2=Math.hypot(d2x,d2y)||1;
+    var n1x=-d1y/l1*sg,n1y=d1x/l1*sg,n2x=-d2y/l2*sg,n2y=d2x/l2*sg,den=1+n1x*n2x+n1y*n2y;
+    if(den<.25)den=.25;
+    out.push([b[0]+(n1x+n2x)*d/den,b[1]+(n1y+n2y)*d/den]);
+  }
+  return out;
+}
+function planSvg2D(r,ri,opt){
+  opt=opt||{};
+  var poly=r.poly,bb;
+  var dr=!opt.ro&&r.mode==="draw";
+  if(opt.fr)bb=opt.fr.bb;
+  else if(dr){var b0=bbox(poly);bb={minX:0,minY:0,maxX:Math.max(6,Math.ceil(b0.maxX)+1),maxY:Math.max(5,Math.ceil(b0.maxY)+1)}}
+  else{bb=bbox(poly);if(!opt.ro)bb={minX:bb.minX-.5,maxX:bb.maxX+.5,minY:bb.minY-.5,maxY:bb.maxY+.5}}
+  var pw=Math.max(bb.maxX-bb.minX,.1),ph=Math.max(bb.maxY-bb.minY,.1);
+  var W=opt.ro?320:(opt.fr&&opt.fr.W?opt.fr.W:planWidth(ri)),P=30,Hmax=opt.ro?220:planMaxH(W),sc=opt.fr?opt.fr.sc:Math.min((W-2*P)/pw,Hmax/ph),H=ph*sc+2*P;
+  var X=function(v){return P+(v-bb.minX)*sc},Y=function(v){return P+(v-bb.minY)*sc};
+  var pts=poly.map(function(p){return X(p.x).toFixed(1)+","+Y(p.y).toFixed(1)}).join(" ");
+  var ed=!opt.ro&&r.mode==="pts",ld=!opt.ro&&r.mode==="lights";
+  var out='<svg '+(opt.ro?'':'data-ri="'+ri+'" ')+'viewBox="0 0 '+W+' '+H.toFixed(0)+'" role="img" aria-label="'+esc(r.n)+' төбе сызбасы">';
+  if(!opt.ro){
+    var gd=(S.gr&&S.gr.step)||.1,gh="",lb=sc>=14?1:5;while(gd*sc<8)gd*=5;
+    var full=document.body.classList.contains("edfull"),ex=full?4000:0,gox=(X(0)-.35).toFixed(2),goy=(Y(0)-.35).toFixed(2),mm=Math.max(1,Math.ceil(8/sc)),mw=mm*sc,mn=gd*sc,gid="gp"+ri,showMin=mn<mw-1e-6;
+    var gpat=function(id,w,op){var t=w.toFixed(3);return'<pattern id="'+id+'" patternUnits="userSpaceOnUse" x="'+gox+'" y="'+goy+'" width="'+t+'" height="'+t+'"><path d="M.35 0V'+t+'M0 .35H'+t+'" fill="none" stroke="#7a8b99" stroke-opacity="'+op+'" stroke-width=".7"/></pattern>'};
+    gh+='<defs>'+(showMin?gpat(gid+"n",mn,.16):'')+gpat(gid+"m",mw,.38)+'</defs>';
+    var gra='x="'+(-ex)+'" y="'+(-ex)+'" width="'+(W+2*ex)+'" height="'+(H+2*ex)+'"';
+    if(showMin)gh+='<rect '+gra+' fill="url(#'+gid+'n)"/>';
+    gh+='<rect '+gra+' fill="url(#'+gid+'m)"/>';
+    for(var gi=Math.ceil(bb.minX/gd-1e-9);gi*gd<=bb.maxX+1e-9;gi++){var gv=+(gi*gd).toFixed(3);
+      if(Math.abs(gv-Math.round(gv))<1e-6&&gv%lb===0)gh+='<text x="'+X(gv).toFixed(1)+'" y="24" font-size="7" text-anchor="middle" fill="#7a8b99">'+gv+'</text>'}
+    for(var gj=Math.ceil(bb.minY/gd-1e-9);gj*gd<=bb.maxY+1e-9;gj++){var gw=+(gj*gd).toFixed(3);
+      if(Math.abs(gw-Math.round(gw))<1e-6&&gw%lb===0)gh+='<text x="26" y="'+(Y(gw)+2.5).toFixed(1)+'" font-size="7" text-anchor="end" fill="#7a8b99">'+gw+'</text>'}
+    out+='<g pointer-events="none">'+gh+'</g>';
+  }
+  var cadBand=!opt.ro&&!dr;
+  if(cadBand){
+    var po=poly.map(function(p){return[X(p.x),Y(p.y)]}),bwd=Math.max(9,Math.min(16,Math.round(sc*.1)));
+    bwd=Math.min(bwd,Math.min(pw,ph)*sc/5);
+    var pi2=offPoly(po,bwd),pf=function(a){return a.map(function(q){return q[0].toFixed(1)+","+q[1].toFixed(1)}).join(" ")},pd=function(a){return"M"+a.map(function(q){return q[0].toFixed(1)+","+q[1].toFixed(1)}).join("L")+"Z"};
+    out+='<g pointer-events="none"><path d="'+pd(po)+pd(pi2)+'" fill="#44474b" fill-rule="evenodd"/>'+
+      '<polygon points="'+pf(pi2)+'" fill="'+esc(r.color||"#ffffff")+'" fill-opacity=".07"/>'+
+      '<polygon points="'+pf(po)+'" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="miter"/>'+
+      '<polygon points="'+pf(pi2)+'" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="miter"/></g>';
+    if(r.mode==="pts"){
+      var sgp=0;po.forEach(function(q,k){var q2=po[(k+1)%po.length];sgp+=q[0]*q2[1]-q2[0]*q[1]});sgp=sgp>=0?1:-1;
+      if(!E.an)poly.forEach(function(A,k){
+        var B=poly[(k+1)%poly.length],dx=B.x-A.x,dy=B.y-A.y,tag=(Math.abs(dy)<.005&&Math.abs(dx)>.01)?"H":(Math.abs(dx)<.005&&Math.abs(dy)>.01)?"V":"";
+        if(!tag)return;
+        var ax=X(A.x),ay=Y(A.y),bx=X(B.x),by=Y(B.y),ex=bx-ax,ey=by-ay,el=Math.hypot(ex,ey)||1;
+        if(el<46)return;
+        var ox=dy*sgp/Math.hypot(dx,dy),oy=-dx*sgp/Math.hypot(dx,dy),sh=(k%2?1:-1)*Math.min(el*.18,60),
+            cx=(ax+bx)/2+ex/el*sh+ox*17,cy=(ay+by)/2+ey/el*sh+oy*17;
+        out+='<g pointer-events="none"><rect x="'+(cx-11).toFixed(1)+'" y="'+(cy-11).toFixed(1)+'" width="22" height="22" rx="6" fill="#2a2c30" stroke="#9aa1aa" stroke-width="1.4"/><text x="'+cx.toFixed(1)+'" y="'+(cy+4.5).toFixed(1)+'" font-size="13" font-weight="700" text-anchor="middle" fill="#e6e9ed">'+tag+'</text></g>';
+      });
+      var bq=bbox(poly),ccx=X((bq.minX+bq.maxX)/2),ccy=Y((bq.minY+bq.maxY)/2);
+      out+='<g pointer-events="none" stroke="#e6e9ed" stroke-width="1.4"><line x1="'+(ccx-12).toFixed(1)+'" y1="'+ccy.toFixed(1)+'" x2="'+(ccx+12).toFixed(1)+'" y2="'+ccy.toFixed(1)+'"/><line x1="'+ccx.toFixed(1)+'" y1="'+(ccy-12).toFixed(1)+'" x2="'+ccx.toFixed(1)+'" y2="'+(ccy+12).toFixed(1)+'"/><circle cx="'+ccx.toFixed(1)+'" cy="'+ccy.toFixed(1)+'" r="5" fill="#e6e9ed" stroke="none"/></g>';
+    }
+  }else out+='<polygon class="pl" style="fill:'+esc(r.color||"#dff1ef")+';fill-opacity:'+(dr?.12:.14)+'" points="'+pts+'"/>';
+  (function(){
+    var n=poly.length,cxm=0,cym=0;
+    poly.forEach(function(p){cxm+=p.x;cym+=p.y});cxm/=n;cym/=n;
+    [["gl","#f5a623","#b36b00","",3,12],["cw","#7b5fd0","#5a3fb0","7 4",9,21]].forEach(function(cfg){
+      var segs=(r[cfg[0]]||[]).slice();
+      if(GPRE&&GPRE.ri===ri&&GPRE.key===cfg[0]&&!opt.ro)segs.push({e:GPRE.e,a:Math.min(GPRE.a,GPRE.b),b:Math.max(GPRE.a,GPRE.b)});
+      segs.forEach(function(g){
+        var A=poly[g.e],B=poly[(g.e+1)%n];if(!A||!B)return;
+        var x1=A.x+(B.x-A.x)*g.a,y1=A.y+(B.y-A.y)*g.a,x2=A.x+(B.x-A.x)*g.b,y2=A.y+(B.y-A.y)*g.b,len=Math.hypot(x2-x1,y2-y1);
+        var ex=B.x-A.x,ey=B.y-A.y,el2=Math.hypot(ex,ey)||1,nx=-ey/el2,ny=ex/el2,mx=(x1+x2)/2,my=(y1+y2)/2;
+        if((cxm-mx)*nx+(cym-my)*ny<0){nx=-nx;ny=-ny}
+        out+='<line x1="'+(X(x1)+nx*cfg[4]).toFixed(1)+'" y1="'+(Y(y1)+ny*cfg[4]).toFixed(1)+'" x2="'+(X(x2)+nx*cfg[4]).toFixed(1)+'" y2="'+(Y(y2)+ny*cfg[4]).toFixed(1)+'" stroke="'+cfg[1]+'" stroke-width="4" stroke-linecap="round"'+(cfg[3]?' stroke-dasharray="'+cfg[3]+'"':'')+' pointer-events="none"/>';
+        if(len>=.15)out+='<text x="'+(X(mx)+nx*cfg[5]).toFixed(1)+'" y="'+(Y(my)+ny*cfg[5]+3).toFixed(1)+'" font-size="8" font-weight="700" text-anchor="middle" fill="'+cfg[2]+'" pointer-events="none">'+fmt(len,2)+' м</text>';
+      });
+    });
+  })();
+  (r.trks||[]).forEach(function(t,ti){
+    var sg=trkSeg(r,t),x1=X(sg.a.x).toFixed(1),y1=Y(sg.a.y).toFixed(1),x2=X(sg.b.x).toFixed(1),y2=Y(sg.b.y).toFixed(1);
+    out+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#14213d" stroke-width="5" stroke-linecap="round" pointer-events="none"/>';
+    if(ld){var dd2=' data-drag="trk" data-ti="'+ti+'"';
+      out+='<line'+dd2+' x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#14213d" stroke-opacity="0.01" stroke-width="22" stroke-linecap="round"/><circle'+dd2+pickSt("trk",ti,ri)+' cx="'+((X(sg.a.x)+X(sg.b.x))/2).toFixed(1)+'" cy="'+((Y(sg.a.y)+Y(sg.b.y))/2).toFixed(1)+'" r="7" fill="#fff" stroke="#14213d" stroke-width="2"/>'}
+  });
+  if(!dr&&!ed)poly.forEach(function(p,i){var q=poly[(i+1)%poly.length];
+    out+='<text class="dm" x="'+X((p.x+q.x)/2).toFixed(1)+'" y="'+(Y((p.y+q.y)/2)-5).toFixed(1)+'">'+fmt(Math.hypot(q.x-p.x,q.y-p.y),2)+'</text>'});
+  r.lights.forEach(function(p,i){out+='<circle class="sp"'+(ld?' data-drag="light" data-li="'+i+'"'+pickSt("light",i,ri):'')+' cx="'+X(p.x).toFixed(1)+'" cy="'+Y(p.y).toFixed(1)+'" r="'+(ld?9:6)+'"/><circle cx="'+X(p.x).toFixed(1)+'" cy="'+Y(p.y).toFixed(1)+'" r="'+(ld?3.5:2.5)+'" fill="#f5a623" pointer-events="none"/>'});
+  if(r.chand&&r.chand.on)(r.chand.pts||[]).forEach(function(p,ci){var cx=X(p.x).toFixed(1),cy=Y(p.y).toFixed(1),dd=ld?' data-drag="chand" data-ci="'+ci+'"':'';
+    out+='<circle class="lu"'+dd+(ld?pickSt("chand",ci,ri):'')+' cx="'+cx+'" cy="'+cy+'" r="12"/><circle class="sp"'+dd+' cx="'+cx+'" cy="'+cy+'" r="3"/>'});
+  if(ed)poly.forEach(function(p,i){var cx=X(p.x).toFixed(1),cy=Y(p.y).toFixed(1);
+    out+='<circle data-drag="vtx" data-vi="'+i+'" cx="'+cx+'" cy="'+cy+'" r="18" fill="transparent"/><circle class="vh" data-drag="vtx" data-vi="'+i+'"'+(E.sel===i&&ri===E.i?' style="fill:var(--acc);stroke:#fff;stroke-width:3"':'')+' cx="'+cx+'" cy="'+cy+'" r="9"/>'+(E.sheet==="panel"?'<text class="dm" style="fill:'+(E.sel===i&&ri===E.i?'#0e1522':'#fff')+';font-size:10px" x="'+cx+'" y="'+(Y(p.y)+3.5).toFixed(1)+'">'+(i+1)+'</text>':'')});
+  if(dr&&r.draw&&r.draw.length){
+    var dq=r.draw;
+    out+='<polyline points="'+dq.map(function(p){return X(p.x).toFixed(1)+","+Y(p.y).toFixed(1)}).join(" ")+'" fill="none" stroke="#0a7d6e" stroke-width="2" pointer-events="none"/>';
+    dq.forEach(function(p,i){
+      if(i){var q=dq[i-1];out+='<text class="dm" x="'+X((p.x+q.x)/2).toFixed(1)+'" y="'+(Y((p.y+q.y)/2)-5).toFixed(1)+'">'+fmt(Math.hypot(p.x-q.x,p.y-q.y),2)+'</text>'}
+      out+='<circle cx="'+X(p.x).toFixed(1)+'" cy="'+Y(p.y).toFixed(1)+'" r="'+(i?4:8)+'" fill="'+(i?'#0a7d6e':'#2ecc71')+'" pointer-events="none"/>'});
+  }
+  if(!opt.ro&&GUIDE&&GUIDE.ri===ri){
+    var gdx=document.body.classList.contains("edfull")?4000:0;
+    if(GUIDE.x!=null)out+='<line x1="'+X(GUIDE.x).toFixed(1)+'" y1="'+(-gdx)+'" x2="'+X(GUIDE.x).toFixed(1)+'" y2="'+(H+gdx).toFixed(0)+'" stroke="#4aa3ff" stroke-width="1.2" stroke-dasharray="6 4" pointer-events="none"/>';
+    if(GUIDE.y!=null)out+='<line x1="'+(-gdx)+'" y1="'+Y(GUIDE.y).toFixed(1)+'" x2="'+(W+gdx)+'" y2="'+Y(GUIDE.y).toFixed(1)+'" stroke="#4aa3ff" stroke-width="1.2" stroke-dasharray="6 4" pointer-events="none"/>';
+  }
+  out+='</svg>';
+  return{svg:out,sc:sc,bb:bb,P:P,W:W};
+}
+
+var E={i:0,vw:"2d",sel:null,pick:null,delAsk:false};
+function showPage(pg){
+  $("pgCalc").hidden=pg!=="calc";$("pgCalcB").hidden=pg!=="calc";$("pgEd").hidden=pg!=="ed";
+  Array.prototype.forEach.call(document.querySelectorAll("[data-pg]"),function(b){b.className=b.getAttribute("data-pg")===pg?"on":""});
+  document.querySelector("main").classList.toggle("wide",pg==="ed");
+  document.body.classList.toggle("edfull",pg==="ed");
+  if(pg!=="ed"){E.sheet=null;var mn=$("cadMenu");if(mn)mn.hidden=true}
+  if(pg==="ed")setView(E.an?"an":E.vw);
+  try{window.scrollTo(0,0)}catch(x){}
+}
+function setView(vw){
+  var tab=vw;E.an=(vw==="an");if(E.an)vw="2d";
+  E.vw=vw;$("ed2d").hidden=vw!=="2d";$("ed3d").hidden=vw!=="3d";
+  Array.prototype.forEach.call(document.querySelectorAll("[data-vw]"),function(b){b.className=b.getAttribute("data-vw")===tab?"on":""});
+  if(E.an){var ra=S.rooms[E.i];if(ra&&ra.mode!=="pts"){ra.mode="pts";ra.draw=null}}
+  if(vw==="2d")drawEditor();
+  if(vw==="3d"){try{window.dispatchEvent(new Event("resize"))}catch(x){}sched3D()}
+}
+function fixInside(r){
+  r.lights=r.lights.map(function(p){return clampToPoly(r.poly,p.x,p.y)});
+  if(r.chand&&r.chand.pts)r.chand.pts=r.chand.pts.map(function(p){return clampToPoly(r.poly,p.x,p.y)});
+}
+function delVertex(i,v){
+  var r=S.rooms[i];if(r.poly.length<=3||v==null||v>=r.poly.length)return;
+  pushHist(r);glDel(r,v);r.poly.splice(v,1);E.sel=null;E.pick=null;E.delAsk=false;fixInside(r);drawRooms();
+}
+function mergeVerts(i,p,at,skip){
+  var r=S.rooms[i],n=r.poly.length;if(n<=3)return;
+  var q=(p+1)%n,A=r.poly[p],B=r.poly[q],m=at==="q"?{x:B.x,y:B.y}:at==="p"?{x:A.x,y:A.y}:{x:+((A.x+B.x)/2).toFixed(2),y:+((A.y+B.y)/2).toFixed(2)};
+  if(!skip)pushHist(r);
+  if(q>p){
+    r.poly[p]=m;r.poly.splice(q,1);
+    WK.forEach(function(k){r[k]=(r[k]||[]).filter(function(g){return g.e!==p}).map(function(g){return{e:g.e>p?g.e-1:g.e,a:g.a,b:g.b}})});
+  }else{
+    r.poly[0]=m;r.poly.pop();
+    WK.forEach(function(k){r[k]=(r[k]||[]).filter(function(g){return g.e!==n-1})});
+  }
+  E.sel=null;E.pick=null;E.delAsk=false;fixInside(r);drawRooms();
+}
+function dropVertex(r,v){
+  var n=r.poly.length,pe=(v-1+n)%n,A=r.poly[pe],B=r.poly[v],C=r.poly[(v+1)%n];
+  var l1=Math.hypot(B.x-A.x,B.y-A.y),l2=Math.hypot(C.x-B.x,C.y-B.y),t=l1+l2,np=pe>v?pe-1:pe;
+  WK.forEach(function(k){
+    var out=[];
+    (r[k]||[]).forEach(function(g){
+      if(g.e===pe){if(t>1e-9)out.push({e:pe,a:g.a*l1/t,b:g.b*l1/t})}
+      else if(g.e===v){if(t>1e-9)out.push({e:pe,a:(l1+g.a*l2)/t,b:(l1+g.b*l2)/t})}
+      else out.push({e:g.e,a:g.a,b:g.b});
+    });
+    r[k]=out.map(function(g){return{e:g.e>v?g.e-1:g.e,a:g.a,b:g.b}}).filter(function(g){return g.b-g.a>1e-6});
+  });
+  r.poly.splice(v,1);
+  WK.forEach(function(k){glMerge(r,np,k)});
+}
+function cleanVerts(i){
+  var r=S.rooms[i],before=JSON.stringify({p:r.poly,l:r.lights,c:r.chand,g:r.gl,w:r.cw,t:r.trks}),removed=0,v=0;
+  while(r.poly.length>3&&v<r.poly.length){
+    var n=r.poly.length,A=r.poly[(v-1+n)%n],B=r.poly[v],C=r.poly[(v+1)%n];
+    var ab=Math.hypot(B.x-A.x,B.y-A.y),bc=Math.hypot(C.x-B.x,C.y-B.y);
+    var cr=(B.x-A.x)*(C.y-B.y)-(B.y-A.y)*(C.x-B.x),dt=(B.x-A.x)*(C.x-B.x)+(B.y-A.y)*(C.y-B.y);
+    if(ab<.005||bc<.005||(dt>0&&Math.abs(cr)/(ab*bc)<.003)){dropVertex(r,v);removed++;v=Math.max(0,v-1)}else v++;
+  }
+  if(removed){r.hist=r.hist||[];r.hist.push(before);r.fut=[];fixInside(r)}
+  E.sel=null;E.pick=null;E.delAsk=false;E.msg=removed?removed+" артық нүкте өшірілді":"Артық нүкте жоқ: барлық нүкте — нақты бұрыш";
+  drawRooms();
+}
+function vtxList(i){
+  var r=S.rooms[i];if(r.mode!=="pts")return"";
+  var n=r.poly.length,h='<div style="margin-top:10px"><label>Төбе бұрыштары: '+n+' нүкте</label>'+
+    '<div class="vrow hd"><span>№</span><span>Келесі нүктеге дейін, м</span><span></span></div>';
+  r.poly.forEach(function(p,k){
+    var q=r.poly[(k+1)%n],len=+Math.hypot(q.x-p.x,q.y-p.y).toFixed(2);
+    h+='<div class="vrow'+(E.sel===k?' on':'')+'"><button type="button" class="vn" data-vsel="'+i+'-'+k+'" aria-label="Нүкте '+(k+1)+' таңдау">'+(k+1)+'</button>'+
+      '<input type="number" inputmode="decimal" step="0.01" min="0.1" value="'+len+'" data-wl="'+i+'" data-wk="'+k+'" aria-label="Нүкте '+(k+1)+' мен '+(((k+1)%n)+1)+' аралығы, м">'+
+      '<button class="del" type="button" data-vrm="'+i+'-'+k+'" aria-label="Нүкте '+(k+1)+' өшіру"'+(n<=3?' disabled':'')+'>✕</button></div>';
+  });
+  return h+'<button type="button" class="add" data-vadd="'+i+'">+ Нүкте қосу</button></div>';
+}
+function addVertex(i){
+  var r=S.rooms[i],n=r.poly.length,k=(E.sel!=null&&E.sel<n)?E.sel:n-1,A=r.poly[k],B=r.poly[(k+1)%n];
+  pushHist(r);glSplit(r,k);
+  r.poly.splice(k+1,0,{x:+((A.x+B.x)/2).toFixed(2),y:+((A.y+B.y)/2).toFixed(2)});
+  E.sel=k+1;drawRooms();
+}
+function selBar(i){
+  var r=S.rooms[i];
+  if(r.mode==="lights"&&E.pick){
+    var pk=E.pick,ex=pk.k==="light"?r.lights[pk.i]:pk.k==="chand"?(r.chand.pts||[])[pk.i]:r.trks[pk.i];
+    if(!ex)return"";
+    return'<div class="selbar"><b>'+(pk.k==="light"?"Шам ":pk.k==="chand"?"Люстра ":"Трек ")+(pk.i+1)+'</b><button type="button" data-pdel="'+i+'">Өшіру</button><button type="button" data-pcl="'+i+'">✕</button></div>';
+  }
+  if(r.mode!=="pts"||E.sel==null||E.sel>=r.poly.length)return"";
+  var n=r.poly.length,ok=n>3?"":" disabled",pv=(E.sel-1+n)%n,nx=(E.sel+1)%n;
+  return'<div class="selbar"><b>Нүкте '+(E.sel+1)+'</b>'+
+    '<button type="button" data-vdel="'+i+'"'+ok+'>Өшіру</button>'+
+    '<button type="button" data-vmrg="'+i+'-'+pv+'"'+ok+'>◀ '+(pv+1)+'-мен біріктіру</button>'+
+    '<button type="button" data-vmrg="'+i+'-'+E.sel+'"'+ok+'>'+(nx+1)+'-мен біріктіру ▶</button>'+
+    '<button type="button" data-vcl="'+i+'" aria-label="Таңдауды алып тастау">✕</button></div>';
+}
+function renderRmDel(){
+  var box=$("rmdel"),rb=$("rmbtn");if(!box)return;var r=S.rooms[E.i];
+  if(rb)rb.disabled=S.rooms.length<2;
+  if(r&&E.delAsk)box.innerHTML='<div class="selbar"><b>«'+esc(r.n)+'» өшірілсін бе?</b><button type="button" data-rmyes="1">Иә, өшіру</button><button type="button" data-rmno="1">Жоқ</button></div>';
+  else box.innerHTML="";
+}
+function pickSt(k,i,ri){return(E.pick&&E.pick.k===k&&E.pick.i===i&&ri===E.i)?' style="stroke:#e74c3c;stroke-width:3.5"':''}
+function toolBtn(r,i,m,ic,label){return'<button type="button" class="tool'+(r.mode===m?' on':'')+'" data-mode="'+m+'" data-ri="'+i+'"><span class="ic">'+ic+'</span>'+label+'</button>'}
+function stepRow(label,sub,cnt,minus,plus){return'<div class="srow"><div><b>'+label+'</b><span class="sub">'+sub+'</span></div><div class="stepper"><button type="button" class="stp" '+minus+' aria-label="Азайту">−</button><span class="stpn">'+cnt+'</span><button type="button" class="stp" '+plus+' aria-label="Қосу">+</button></div></div>'}
+var ICO={
+  sel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 3l14 7-6.5 2-2 7z"/></svg>',
+  rect:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3.5" y="6" width="17" height="12" rx="1.5"/></svg>',
+  pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-5L16 4l4 4L9 19z"/><path d="M13.5 6.5l4 4"/></svg>',
+  cut:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M8 7.8L20 17M8 16.2L20 7"/></svg>',
+  light:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>',
+  glow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 18h18"/><path d="M6 14v-3M12 14V8M18 14v-3"/></svg>',
+  curt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M6 10v9M10 10v9M14 10v9M18 10v9" stroke-dasharray="2.5 2.5"/></svg>',
+  undo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h9a6 6 0 0 1 0 12h-3"/></svg>',
+  redo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9h-9a6 6 0 0 0 0 12h3"/></svg>'
+};
+function ctB(r,i,m,ic,label,cls,fly){return'<button type="button" class="ct'+(cls?' '+cls:'')+(fly?' has-fly':'')+(r.mode===m?' on':'')+'" data-mode="'+m+'" data-ri="'+i+'"'+(fly?' data-fly="'+fly+'"':'')+' aria-label="'+label+'">'+ic+'</button>'}
+function miniStep(lbl,cnt,minus,plus){return'<div class="mini"><span>'+lbl+'</span><button type="button" '+minus+' aria-label="Азайту">−</button><b>'+cnt+'</b><button type="button" '+plus+' aria-label="Қосу">+</button></div>'}
+function drawEditor(){renderRmDel();
+  var box=$("ed2d");if(!box)return;
+  var i=E.i,r=S.rooms[i];if(!r){box.innerHTML="";return}
+  var hint=r.mode==="draw"?"Тордың нүктелерін ретімен басыңыз. Бірінші (жасыл) нүктені қайта басыңыз — контур жабылады.":
+    r.mode==="curtain"?"Скрытый еврокарниз: қабырғаны басыңыз — бүкіл қабырға, бойымен сүйреңіз — бөлігі. Күлгін жолақты басыңыз — өшеді.":
+    r.mode==="glow"?"Қабырғаны басыңыз — бүкіл қабырға. Қабырға бойымен сүйреңіз — бөлігі. Сары жолақты басыңыз — өшеді.":
+    r.mode==="lights"?"Шамды, люстраны немесе тректі басып таңдаңыз, сүйреп жылжытыңыз — басқа шамдардың және бөлме ортасының осьтеріне тіркеледі.":
+    E.an?"Қабырғаның өлшемін басып, жаңа санды жазыңыз.":
+    "Бұрышты сүйреңіз · жиекті басып нүкте қосыңыз · ▸ белгілі батырманы ұзақ басыңыз.";
+  if(E.msg)hint=E.msg;if(E.toast){hint=E.toast;E.toast=""}
+  var bar="",sheetP="";
+  if(r.mode==="pts"){bar=selBar(i);sheetP=vtxList(i)+'<button type="button" class="add" data-vclean="'+i+'" style="margin-top:8px">Артық нүктелерді тазалау</button>'}
+  else if(r.mode==="lights"){
+    bar=selBar(i)+'<div class="minis">'+miniStep("💡",r.lights.length,'data-dellight="'+i+'"','data-addlight="'+i+'"')+miniStep("◎",r.chand.pts.length,'data-chandm="'+i+'"','data-chandp="'+i+'"')+miniStep("━",r.trks.length,'data-trkm="'+i+'"','data-trkp="'+i+'"')+'</div>';
+    sheetP='<div style="margin-bottom:8px">'+r.trks.map(function(t,ti){return trkRow(i,t,ti)}).join("")+'</div>';
+  }
+  else if(r.mode==="glow")bar='<div class="grid" style="grid-template-columns:1fr 1fr"><button type="button" class="add" data-glall="'+i+'">Барлық қабырға</button><button type="button" class="add" data-glclr="'+i+'">Тазалау</button></div><div class="hint" id="gt'+i+'"></div>';
+  else if(r.mode==="curtain")bar='<div class="grid" style="grid-template-columns:1fr 1fr"><button type="button" class="add" data-cwall="'+i+'">Барлық қабырға</button><button type="button" class="add" data-cwclr="'+i+'">Тазалау</button></div><div class="hint" id="ct'+i+'"></div>';
+  else bar='<div class="grid" style="grid-template-columns:1fr 1fr 1fr"><button type="button" class="add" data-dclose="'+i+'">Жабу ✓</button><button type="button" class="add" data-dundo="'+i+'">Артқа ↶</button><button type="button" class="add" data-dcancel="'+i+'">Болдырмау</button></div><div class="hint" id="dh'+i+'">Нүкте: '+((r.draw||[]).length)+'</div>';
+  var set='<details class="set"'+' open'+' data-setd="1"><summary>⚙ Баптаулар: түс, биіктік, пішін, тор</summary><div class="room" style="margin-top:6px">'+
+    '<div><label>Түсі</label><input type="color" value="'+r.color+'" data-i="'+i+'" data-k="color" style="padding:2px;height:40px"></div>'+
+    '<div><label>Биіктігі, м</label><input type="number" inputmode="decimal" step="0.05" min="1.8" value="'+r.h+'" data-i="'+i+'" data-k="h"></div>'+
+    '<div class="full" id="shapeSec"><label>Пішіні</label><div class="grid" style="grid-template-columns:1fr 1fr 1fr">'+
+    '<div><label>Түрі</label><select data-di="'+i+'" data-dk="s"><option value="r"'+(r.dim.s==="l"?'':' selected')+'>Төртбұрыш</option><option value="l"'+(r.dim.s==="l"?' selected':'')+'>Г-тәрізді</option></select></div>'+
+    '<div><label>Ұзындығы, м</label><input type="number" inputmode="decimal" step="0.01" min="0" value="'+rmSize(r,"l")+'" data-di="'+i+'" data-dk="l"></div>'+
+    '<div><label>Ені, м</label><input type="number" inputmode="decimal" step="0.01" min="0" value="'+rmSize(r,"w")+'" data-di="'+i+'" data-dk="w"></div>'+
+    (r.dim.s==="l"?'<div><label>Кесік ұзындығы, м</label><input type="number" inputmode="decimal" step="0.01" min="0" value="'+r.dim.a+'" data-di="'+i+'" data-dk="a"></div>'+
+    '<div><label>Кесік ені, м</label><input type="number" inputmode="decimal" step="0.01" min="0" value="'+r.dim.b+'" data-di="'+i+'" data-dk="b"></div>':'')+
+
+    '</div></div>'+
+    '<div class="full">'+
+    '<div class="grid" style="grid-template-columns:1fr 1fr 1fr;align-items:end;margin:6px 0"><div><label>Тор қадамы</label><select data-gr="step">'+[.05,.1,.25,.5].map(function(v){return'<option value="'+v+'"'+(S.gr.step===v?' selected':'')+'>'+Math.round(v*100)+' см</option>'}).join("")+'</select></div><label><input type="checkbox" data-gr="snap" '+(S.gr.snap?'checked':'')+' style="width:auto;margin-right:4px">Тормен тарту</label><label><input type="checkbox" data-gr="ortho" '+(S.gr.ortho?'checked':'')+' style="width:auto;margin-right:4px">Ось бойынша</label></div>'+
+    '<label style="display:block;margin:2px 0 6px"><input type="checkbox" data-gr="axes" '+(S.gr.axes!==false?'checked':'')+' style="width:auto;margin-right:4px">Шамдарды осьтерге тіркеу</label>'+
+    '</div></div></details>';
+  var dr=r.mode==="draw";
+  var tools='<div class="cad-tools">'+
+    ctB(r,i,"pts",ICO.sel,"Таңдау / жылжыту","sel")+
+    '<button type="button" class="ct has-fly'+(E.sheet==="panel"&&E.focus==="shape"?' on':'')+'" data-fly="shape" data-sheet="panel" data-focus="shape" aria-label="Төртбұрыш / пішін">'+ICO.rect+'</button>'+
+    ctB(r,i,"draw",ICO.pen,"Бөлме сызу","","pen")+
+    '<button type="button" class="ct has-fly" data-fly="cut" data-cut="'+i+'" aria-label="Таңдалған нүктені өшіру">'+ICO.cut+'</button>'+
+    '<span class="cd"></span>'+
+    ctB(r,i,"lights",ICO.light,"Жарық","","light")+ctB(r,i,"glow",ICO.glow,"Подсветка","","glow")+ctB(r,i,"curtain",ICO.curt,"Еврокарниз","","curt")+
+    '<span class="cd"></span>'+
+    '<button type="button" class="ct" '+(dr?'data-dundo="'+i+'"':'data-hundo="'+i+'"')+' aria-label="Артқа">'+ICO.undo+'</button>'+
+    '<button type="button" class="ct" '+(dr?'disabled':'data-hredo="'+i+'"')+' aria-label="Алға">'+ICO.redo+'</button></div>';
+  var sheet="";
+  if(E.sheet==="panel")sheet='<div class="cad-sheet"><div class="sh-h"><b>'+esc(r.n)+'</b><button type="button" class="sh-x" data-sheet="" aria-label="Жабу">✕</button></div><div class="sh-b">'+sheetP+set+'</div></div>';
+  else if(E.sheet==="rooms")sheet='<div class="cad-sheet"><div class="sh-h"><b>Бөлмелер</b><button type="button" class="sh-x" data-sheet="" aria-label="Жабу">✕</button></div><div class="sh-b">'+
+    S.rooms.map(function(rm,k){return'<button type="button" class="rrow'+(k===i?' on':'')+'" data-rsel="'+k+'"><span>'+esc(rm.n)+'</span><span>'+fmt(polyArea(rm.poly),1)+' м²</span></button>'}).join("")+
+    '<button type="button" class="add" data-radd="1">＋ Бөлме қосу</button></div></div>';
+  var h='<div class="cad'+(E.sheet?' shopen':'')+'"><div class="cad-canvas"><div class="planwrap"><div class="plan" id="plan'+i+'"></div><div class="wl" id="wl'+i+'"></div></div></div>'+
+    tools+'<div class="cad-bot"><div class="stat" id="einfo'+i+'"></div><div class="hint">'+hint+'</div><div class="cad-bar">'+bar+'</div></div>'+sheet+'</div>';
+  var ob=box.querySelector(".sh-b"),sc0=ob?ob.scrollTop:0;
+  E.msg="";box.innerHTML=h;renderPlan(i);
+  var nb=box.querySelector(".sh-b");
+  if(nb){if(E.focus==="shape"){var sf=box.querySelector("#shapeSec");if(sf)nb.scrollTop=Math.max(0,sf.offsetTop-nb.offsetTop-8)}else if(sc0)nb.scrollTop=sc0}
+  E.focus=null;
+}
+function drawRooms(){
+  if(E.i>=S.rooms.length)E.i=Math.max(0,S.rooms.length-1);T3.ri=E.i;
+  var h="";
+  S.rooms.forEach(function(r,i){
+    var opts=S.cat.map(function(c,j){return '<option value="'+j+'"'+(j==r.m?' selected':'')+'>'+esc(c.n)+'</option>'}).join("");
+    var vh="";
+    r.poly.forEach(function(p,vi){
+      vh+='<div class="vtx"><div><label>Нүкте '+(vi+1)+' · X, м</label><input type="number" inputmode="decimal" step="0.01" value="'+p.x+'" data-ri="'+i+'" data-vi="'+vi+'" data-vk="x"></div>'+
+      '<div><label>Нүкте '+(vi+1)+' · Y, м</label><input type="number" inputmode="decimal" step="0.01" value="'+p.y+'" data-ri="'+i+'" data-vi="'+vi+'" data-vk="y"></div>'+
+      '<button class="del" type="button" data-dv="'+i+'-'+vi+'" aria-label="Нүктені жою"'+(r.poly.length<3?' disabled':'')+'>✕</button></div>';
+    });
+    var pv=planSvg2D(r,i);
+    h+='<div class="room"><div class="full head"><div><label>Бөлме атауы</label><input type="text" value="'+esc(r.n)+'" data-i="'+i+'" data-k="n"></div>'+
+    '<button class="del" type="button" data-dr="'+i+'" aria-label="Бөлмені жою"'+(S.rooms.length<2?' disabled':'')+'>✕</button></div>'+
+    '<div><label>Төбе түрі</label><select data-i="'+i+'" data-k="m">'+opts+'</select></div>'+
+    '<div><label>Шамдар саны</label><input type="number" inputmode="numeric" min="0" value="'+r.lights.length+'" data-i="'+i+'" data-k="lc"></div>'+
+    '<div class="full"><label>Профиль құрамы</label><div id="pf'+i+'"></div>'+
+    '<button type="button" class="add" data-addpf="'+i+'" style="margin-top:4px">Профиль жолын қосу</button></div>'+
+    '<div class="full"><button type="button" class="add" data-edit="'+i+'">✏️ Редакторда ашу (2D / 3D)</button></div>'+
+    '<div class="full info" id="info'+i+'"></div></div>';
+  });
+  $("rooms").innerHTML=h;
+  S.rooms.forEach(function(r,i){drawPf(i)});drawEditor();fillV3();
+  calc();
+}
+
+function renderPlan(i,fr){
+  var r=S.rooms[i],el=$("plan"+i);if(!el)return;
+  var html=planSvg2D(r,i,{fr:fr}).svg,old=el.firstElementChild;
+  if(fr&&old&&old.tagName.toLowerCase()==="svg"){
+    // during a drag keep the same <svg> element so the pointer stays attached to it
+    var tmp=document.createElement("div");tmp.innerHTML=html;var ns=tmp.firstElementChild;
+    old.setAttribute("viewBox",ns.getAttribute("viewBox"));old.innerHTML=ns.innerHTML;
+  }else el.innerHTML=html;
+  wallInputs(i,fr);
+}
+
+function pfRest(r,exj){var sum=0;(r.pf||[]).forEach(function(x,j){if(j!==exj)sum+=+x.len||0});return +Math.max(0,polyPerimeter(r.poly)-sum).toFixed(2)}
+function drawPf(i){
+  var r=S.rooms[i],el=$("pf"+i);if(!el)return;
+  var h="";
+  r.pf.forEach(function(x,j){
+    var opts=S.ptypes.map(function(t,k){return '<option value="'+k+'"'+(k==x.t?" selected":"")+'>'+esc(t.n)+'</option>'}).join("");
+    h+='<div class="pfr"><div><label>Түрі</label><select data-pi="'+i+'" data-pj="'+j+'" data-pk="t">'+opts+'</select></div>'+
+    '<div><label>Ұзындығы, м</label><input type="number" inputmode="decimal" min="0" step="0.01" value="'+x.len+'" data-pi="'+i+'" data-pj="'+j+'" data-pk="len"></div>'+
+    '<button type="button" data-pfrest="'+i+'-'+j+'" title="Периметрдің қалған бөлігін қою">Қалғаны</button><button class="del" type="button" data-dpf="'+i+'-'+j+'" aria-label="Жолды жою"'+(r.pf.length<2?" disabled":"")+'>✕</button></div>';
+  });
+  el.innerHTML=h;
+}
+
+function calc(){
+  var shr=Math.min(S.sh,30)/100,k=1-shr,area=0,cut=0,roomCost=0,rows="",totalLights=0,totalChand=0,film=0,seams=0,trkL=0,glowL=0,cwL=0;
+  S.rooms.forEach(function(r,i){
+    var per0=polyPerimeter(r.poly);
+    if(r._per!==undefined&&r.pf.length===1&&Math.abs((+r.pf[0].len||0)-r._per)<.011&&Math.abs(per0-r._per)>.005){r.pf[0].len=+per0.toFixed(2);if($("pf"+i))drawPf(i)}
+    r._per=per0;
+    var mt=S.cat[r.m]||S.cat[0];
+    var a=polyArea(r.poly),c=a*mt.p;
+    area+=a;cut+=a*k*k;roomCost+=c;
+    var bbr=bbox(r.poly),fx=(bbr.maxX-bbr.minX)*k,fy=(bbr.maxY-bbr.minY)*k,rw=S.roll||3.2;
+    var f1=Math.ceil(fx/rw)*rw*fy,f2=Math.ceil(fy/rw)*rw*fx;film+=Math.min(f1,f2);seams+=Math.max(0,(f1<=f2?Math.ceil(fx/rw):Math.ceil(fy/rw))-1);
+    totalLights+=r.lights.length;
+    if(r.chand&&r.chand.on)totalChand+=(r.chand.pts||[]).length;
+    (r.trks||[]).forEach(function(t){trkL+=trkSeg(r,t).len});
+    var rcw=glLen(r,"cw");cwL+=rcw;var cte=$("ct"+i);if(cte)cte.textContent="Еврокарниз: "+fmt(rcw,2)+" м";
+    var rgl=glLen(r);glowL+=rgl;var gte=$("gt"+i);if(gte)gte.textContent="Подсветка: "+fmt(rgl,2)+" м";
+    var pf=(r.pf||[]).filter(function(x){return(x.len||0)>0}).map(function(x){return(S.ptypes[x.t]||S.ptypes[0]).n+" "+fmt(x.len||0,2)+" м"}).join(", ");
+    var el=$("info"+i);
+    var itx="Бұрыш: "+r.poly.length+" · ауданы "+fmt(a,2)+" м² · периметрі "+fmt(polyPerimeter(r.poly),2)+" м · құны "+fmt(c)+" ₸"+(pf?" · профиль: "+pf:"")+" · шам: "+r.lights.length+(r.chand&&r.chand.on&&r.chand.pts.length?" + люстра "+r.chand.pts.length:"")+(rgl?" · подсветка "+fmt(rgl,2)+" м":"");
+    if(el)el.textContent=itx;var e2=$("einfo"+i);if(e2)e2.textContent=fmt(a,2)+" м² · периметр "+fmt(polyPerimeter(r.poly),2)+" м · "+r.poly.length+" бұрыш"+(rgl?" · подсветка "+fmt(rgl,2)+" м":"")+(rcw?" · карниз "+fmt(rcw,2)+" м":"")+" · "+fmt(c)+" ₸";
+    rows+="<tr><td>"+esc(r.n)+" ("+esc(mt.n)+")</td><td>"+fmt(a,2)+" м²</td><td>"+fmt(c)+" ₸</td></tr>";
+  });
+  var pdet={},prof=0;
+  S.rooms.forEach(function(r){(r.pf||[]).forEach(function(x){var t=S.ptypes[x.t]||S.ptypes[0];var v=(x.len||0)*t.p;prof+=v;pdet[t.n]=(pdet[t.n]||0)+(x.len||0)})});
+  var spotPrice=S.spot,spots=totalLights*spotPrice,mont=area*S.mont;
+  var ch=totalChand*S.cp,exs=0,exh="",exk="";
+  S.ex.forEach(function(x){var v=x.p*x.q;exs+=v;if(x.q){exh+="<tr><td>"+esc(x.n)+", "+fmt(x.q,1)+"</td><td>"+fmt(v)+" ₸</td></tr>";exk+="<tr><td>"+esc(x.n)+"</td><td>"+fmt(x.q,1)+"</td><td>"+fmt(v)+" ₸</td></tr>"}});
+  var trkC=trkL*(S.trk||0),glC=glowL*(S.glow||0),cwC=cwL*(S.cw||0),sum=roomCost+prof+spots+ch+exs+mont+trkC+glC+cwC;
+  var items=[["Төбе материалы, "+fmt(area,2)+" м²",roomCost]];
+  Object.keys(pdet).forEach(function(n){var t=S.ptypes.filter(function(tt){return tt.n===n})[0]||{p:0};items.push(["Профиль: "+n+", "+fmt(pdet[n],2)+" м",pdet[n]*t.p])});
+  items.push(["Шамдар (спот), "+fmt(totalLights)+" дана · "+fmt(spotPrice)+" ₸/дана",spots]);
+  items.push(["Люстра, "+fmt(totalChand)+" дана",ch]);
+  if(trkL)items.push(["Трек (шинопровод), "+fmt(trkL,2)+" м",trkC]);
+  if(glowL)items.push(["Подсветка, "+fmt(glowL,2)+" м",glC]);
+  if(cwL)items.push(["Скрытый еврокарниз, "+fmt(cwL,2)+" м",cwC]);
+  items.push(["Монтаж, "+fmt(area,2)+" м²",mont]);
+  var h="";
+  items.forEach(function(x){h+="<tr><td>"+x[0]+"</td><td>"+fmt(x[1])+" ₸</td></tr>"});
+  h+=exh;
+  h+="<tr><td>Цехқа: пленка пішу ауданы</td><td>"+fmt(cut,2)+" м²</td></tr><tr><td>Пленка орамнан (ені "+fmt(S.roll,1)+" м), жіктер: "+seams+"</td><td>"+fmt(film,2)+" м²</td></tr>";
+  $("rows").innerHTML=h;
+  $("grand").textContent=fmt(sum)+" ₸";
+  var extra="";
+  Object.keys(pdet).forEach(function(n){var t=S.ptypes.filter(function(tt){return tt.n===n})[0]||{p:0};extra+="<tr><td>Профиль: "+esc(n)+", "+fmt(pdet[n],2)+" м</td><td></td><td>"+fmt(pdet[n]*t.p)+" ₸</td></tr>"});
+  if(totalLights)extra+="<tr><td>Шамдар, "+fmt(totalLights)+" дана</td><td></td><td>"+fmt(spots)+" ₸</td></tr>";
+  if(totalChand)extra+="<tr><td>Люстра, "+fmt(totalChand)+" дана</td><td></td><td>"+fmt(ch)+" ₸</td></tr>";
+  if(trkL)extra+="<tr><td>Трек (шинопровод), "+fmt(trkL,2)+" м</td><td></td><td>"+fmt(trkC)+" ₸</td></tr>";
+  if(glowL)extra+="<tr><td>Подсветка, "+fmt(glowL,2)+" м</td><td></td><td>"+fmt(glC)+" ₸</td></tr>";
+  if(cwL)extra+="<tr><td>Скрытый еврокарниз, "+fmt(cwL,2)+" м</td><td></td><td>"+fmt(cwC)+" ₸</td></tr>";
+  if(mont)extra+="<tr><td>Монтаж, "+fmt(area,2)+" м²</td><td></td><td>"+fmt(mont)+" ₸</td></tr>";
+  extra+=exk;
+  var plans='<h3 style="margin-top:18px">Төбе сызбасы</h3><div class="meta">● шам · ◎ люстра · қою сызық — трек · сары сызық — подсветка · күлгін пунктир — еврокарниз (метрі жазылған).</div>';
+  S.rooms.forEach(function(r,i){plans+='<div class="plan"><b>'+esc(r.n)+'</b> · '+r.lights.length+' шам'+(r.chand&&r.chand.on&&r.chand.pts.length?' · люстра '+r.chand.pts.length:'')+planSvg2D(r,i,{ro:true}).svg+'</div>'});
+  $("kp").innerHTML="<h3>Коммерциялық ұсыныс</h3><div class=\"meta\">"+(S.company?esc(S.company)+" · ":"")+new Date().toLocaleDateString("ru-RU")+(S.client?" · Тапсырыс беруші: "+esc(S.client):"")+"</div>"+
+    "<table><tr><th>Бөлме</th><th>Ауданы</th><th>Сомасы</th></tr>"+rows+extra+"</table><div class=\"tot\">Жиыны: "+fmt(sum)+" ₸</div>"+plans;
+  sched3D();save();
+}
+
+function wallInputs(i,fr){
+  var r=S.rooms[i],box=$("wl"+i);if(!box)return;
+  if(r.mode!=="pts"||!E.an){box.innerHTML="";return}
+  var f=fr||planFrame(i),pl=$("plan"+i),svg=pl&&pl.firstElementChild;if(!svg)return;
+  var vb=(svg.getAttribute("viewBox")||"0 0 320 240").split(" "),W=+vb[2],H=+vb[3],n=r.poly.length,cxm=0,cym=0,h="";
+  r.poly.forEach(function(p){cxm+=p.x;cym+=p.y});cxm/=n;cym/=n;
+  r.poly.forEach(function(A,k){
+    var B=r.poly[(k+1)%n],mx=(A.x+B.x)/2,my=(A.y+B.y)/2,ex=B.x-A.x,ey=B.y-A.y,ln=Math.hypot(ex,ey),u=ln||1,nx=-ey/u,ny=ex/u;
+    if((mx-cxm)*nx+(my-cym)*ny<0){nx=-nx;ny=-ny}
+    var px=f.P+(mx-f.bb.minX)*f.sc+nx*12,py=f.P+(my-f.bb.minY)*f.sc+ny*12;
+    h+='<input class="wl-i" type="number" inputmode="decimal" step="0.01" min="0.1" value="'+(+ln.toFixed(2))+'" data-wl="'+i+'" data-wk="'+k+'" style="left:'+(px/W*100).toFixed(2)+'%;top:'+(py/H*100).toFixed(2)+'%" aria-label="Қабырға '+(k+1)+' ұзындығы, м">';
+  });
+  box.innerHTML=h;
+}
+function setWall(i,k,L){
+  var r=S.rooms[i],n=r.poly.length,A=r.poly[k],B=r.poly[(k+1)%n],C=r.poly[(k+2)%n];
+  var dx=B.x-A.x,dy=B.y-A.y,len=Math.hypot(dx,dy);
+  if(!(L>=.1)||len<1e-6||Math.abs(L-len)<.005){drawRooms();return}
+  pushHist(r);
+  var sh=L-len,mx=dx/len*sh,my=dy/len*sh,ex=C.x-B.x,ey=C.y-B.y,el=Math.hypot(ex,ey);
+  var perp=n>3&&el>1e-6&&Math.abs((dx*ex+dy*ey)/(len*el))<.02;
+  function mv(p){return{x:+(p.x+mx).toFixed(3),y:+(p.y+my).toFixed(3)}}
+  r.poly[(k+1)%n]=mv(B);if(perp)r.poly[(k+2)%n]=mv(C);
+  r.lights=r.lights.map(function(p){return clampToPoly(r.poly,p.x,p.y)});
+  if(r.chand&&r.chand.pts)r.chand.pts=r.chand.pts.map(function(p){return clampToPoly(r.poly,p.x,p.y)});
+  save();drawRooms();
+}
+function rmSize(r,k){var b=bbox(r.poly);return +((k==="l"?b.maxX-b.minX:b.maxY-b.minY)).toFixed(2)}
+function resizeRoom(i,nl,nw){
+  var r=S.rooms[i],b=bbox(r.poly),l=b.maxX-b.minX,w=b.maxY-b.minY;
+  if(l<1e-6||w<1e-6)return;
+  if(!(nl>=.2))nl=l;if(!(nw>=.2))nw=w;
+  if(Math.abs(nl-l)<1e-6&&Math.abs(nw-w)<1e-6){drawRooms();return}
+  var sx=nl/l,sy=nw/w;pushHist(r);
+  function f(p){return{x:+(b.minX+(p.x-b.minX)*sx).toFixed(3),y:+(b.minY+(p.y-b.minY)*sy).toFixed(3)}}
+  r.poly=r.poly.map(f);r.lights=r.lights.map(f);
+  if(r.chand&&r.chand.pts)r.chand.pts=r.chand.pts.map(f);
+  (r.trks||[]).forEach(function(t){var q=f({x:t.cx,y:t.cy});t.cx=q.x;t.cy=q.y});
+  if(r.dim){if(r.dim.s==="l"){r.dim.a=+(r.dim.a*sx).toFixed(2);r.dim.b=+(r.dim.b*sy).toFixed(2)}r.dim.l=+nl.toFixed(2);r.dim.w=+nw.toFixed(2)}
+  save();drawRooms();
+}
+function applyShape(i){var nOld=S.rooms[i].poly.length;pushHist(S.rooms[i]);var b0=bbox(S.rooms[i].poly);S.rooms[i].dim.l=+(b0.maxX-b0.minX).toFixed(2);S.rooms[i].dim.w=+(b0.maxY-b0.minY).toFixed(2);
+  var r4=S.rooms[i],d=r4.dim,l=d.l||3,w=d.w||3,a=Math.min(d.a||0,l-.1),b=Math.min(d.b||0,w-.1);
+  r4.poly=(d.s==="l"&&a>0&&b>0)?[{x:0,y:0},{x:+(l-a).toFixed(2),y:0},{x:+(l-a).toFixed(2),y:b},{x:l,y:b},{x:l,y:w},{x:0,y:w}].map(function(q){var o=d.o||0,fx=(o===2||o===3),fy=(o===1||o===2);return{x:fx?+(l-q.x).toFixed(2):q.x,y:fy?+(w-q.y).toFixed(2):q.y}}):[{x:0,y:0},{x:l,y:0},{x:l,y:w},{x:0,y:w}];
+  r4.lights=r4.lights.map(function(p){return clampToPoly(r4.poly,p.x,p.y)});
+  if(S.rooms[i].poly.length!==nOld){S.rooms[i].gl=[];S.rooms[i].cw=[]}save();drawRooms();
+}
+document.addEventListener("change",function(e){
+  var t=e.target,di=t.getAttribute&&t.getAttribute("data-di"),wl=t.getAttribute&&t.getAttribute("data-wl");
+  if(wl!==null&&wl!==undefined){setWall(+wl,+t.getAttribute("data-wk"),+String(t.value).replace(",","."));return}
+  if(di!==null&&di!==undefined){var dk2=t.getAttribute("data-dk");
+    if(dk2==="l")resizeRoom(+di,pos(t.value),null);else if(dk2==="w")resizeRoom(+di,null,pos(t.value));else applyShape(+di);}
+});
+document.addEventListener("input",function(e){
+  if(e.target.id==="v3gain"){S.gain=+e.target.value;save();sched3D();return}
+  var t=e.target,g=t.getAttribute("data-g"),i=t.getAttribute("data-i"),e2=t.getAttribute("data-e"),c=t.getAttribute("data-c"),pt=t.getAttribute("data-pt"),pi=t.getAttribute("data-pi"),key=t.getAttribute("data-k");
+  var vri=t.getAttribute("data-ri"),vvi=t.getAttribute("data-vi"),vk=t.getAttribute("data-vk");
+  if(g){S[g]=(g==="client"||g==="company")?t.value:pos(t.value);calc();}
+  else if(vri!==null&&vvi!==null){S.rooms[vri].poly[vvi][vk]=num(t.value);renderPlan(+vri);calc();}
+  else if(c!==null){S.cat[c][key]=key==="p"?pos(t.value):t.value;if(key==="n")drawRooms();else calc();}
+  else if(e2!==null){S.ex[e2][key]=key==='n'?t.value:pos(t.value);calc();}
+  else if(pt!==null){S.ptypes[pt][key]=key==="p"?pos(t.value):t.value;if(key==="n")drawRooms();calc();}
+  else if(pi!==null){
+    var pj=t.getAttribute("data-pj"),pk=t.getAttribute("data-pk");
+    S.rooms[pi].pf[pj][pk]=pk==="t"?+t.value:pos(t.value);
+    calc();
+  }
+  else if(t.getAttribute("data-di")!==null){var dd=S.rooms[t.getAttribute("data-di")].dim,dk=t.getAttribute("data-dk");dd[dk]=dk==="s"?t.value:pos(t.value)}
+
+  else if(t.hasAttribute("data-gr")){var gk=t.getAttribute("data-gr");S.gr[gk]=gk==="step"?+t.value:t.checked;save();drawRooms();}
+  else if(t.hasAttribute("data-trkk")){var ti0=+t.getAttribute("data-trki"),tj0=+t.getAttribute("data-tj"),tk0=S.rooms[ti0].trks[tj0],kk0=t.getAttribute("data-trkk");tk0[kk0]=(kk0==="o"||kk0==="k"||kk0==="c")?t.value:pos(t.value);if(kk0==="k"&&t.value==="r"&&!tk0.ll)tk0.ll=.6;renderPlan(ti0);calc();if(kk0==="k")drawEditor();}
+  else if(i!==null){
+    var r=S.rooms[i];
+    if(key==="n"||key==="color")r[key]=t.value;else if(key==="m")r.m=+t.value;else if(key==="h")r.h=pos(t.value)||2.6;else if(key==="lc"){setLights(r,Math.round(pos(t.value)))}
+    if(key==="color"||key==="lc")renderPlan(+i);
+    if(key==="n")fillV3();
+    calc();
+  }
+});
+
+/* ===== ұзақ басу мәзірі ===== */
+var flyT=null,flyHeld=false,flyX=0,flyY=0;
+function SVGI(d){return'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>'}
+var LSH=['<path d="M4 5h9v5h7v9H4z"/>','<path d="M4 5h16v9h-7v5H4z"/>','<path d="M4 5h16v14h-9v-5H4z"/>','<path d="M11 5h9v14H4v-9h7z"/>'];
+var LNAME=["оң жоғары","оң төмен","сол төмен","сол жоғары"];
+function flyItems(id,r){
+  var d=r.dim||{},cur=d.s==="l"?"l"+(d.o||0):"r",it=[],g=S.gr;
+  if(id==="shape"){
+    it.push({a:"shape:r",ic:SVGI('<rect x="4" y="5" width="16" height="14" rx="1"/>'),t:"Төртбұрыш",on:cur==="r"});
+    for(var k=0;k<4;k++)it.push({a:"shape:l"+k,ic:SVGI(LSH[k]),t:"Г-тәрізді, кесік "+LNAME[k],on:cur==="l"+k});
+  }else if(id==="pen"){
+    it.push({a:"pen:draw",ic:ICO.pen,t:"Көпбұрыш сызу",on:r.mode==="draw"});
+    it.push({a:"pen:snap",ic:SVGI('<path d="M4 4h16v16H4zM4 12h16M12 4v16"/>'),t:"Тормен тарту",on:!!g.snap,chk:1});
+    it.push({a:"pen:ortho",ic:SVGI('<path d="M5 19V5h14"/>'),t:"Ось бойынша (90°)",on:!!g.ortho,chk:1});
+    it.push({a:"pen:step",ic:SVGI('<path d="M4 8h16M4 12h16M4 16h16"/>'),t:"Тор қадамы: "+Math.round((g.step||.1)*100)+" см"});
+  }else if(id==="light"){
+    it.push({a:"light:add",ic:ICO.light,t:"Шам қосу"});
+    it.push({a:"light:chand",ic:SVGI('<circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>'),t:"Люстра қосу"});
+    it.push({a:"light:trk",ic:SVGI('<path d="M4 6h16"/><path d="M8 6v6M16 6v6"/><circle cx="8" cy="15" r="2.5"/><circle cx="16" cy="15" r="2.5"/>'),t:"Накладной трек (салбыраған)"});
+    it.push({a:"light:trkr",ic:SVGI('<path d="M3 8h18v3H3z"/><path d="M6 16h5M13 16h5"/>'),t:"Встроенный трек (30/60 см)"});
+    it.push({a:"light:del",ic:SVGI('<path d="M5 12h14"/>'),t:"Соңғы шамды өшіру"});
+    it.push({a:"light:axes",ic:SVGI('<path d="M12 3v18M3 12h18" stroke-dasharray="3 2.5"/><circle cx="12" cy="12" r="2.6"/>'),t:"Осьтерге тіркеу",on:g.axes!==false,chk:1});
+  }else if(id==="glow"){
+    it.push({a:"glow:all",ic:ICO.glow,t:"Барлық қабырғаға"});
+    it.push({a:"glow:clr",ic:SVGI('<path d="M6 6l12 12M18 6L6 18"/>'),t:"Подсветканы тазалау"});
+  }else if(id==="curt"){
+    it.push({a:"curt:all",ic:ICO.curt,t:"Барлық қабырғаға"});
+    it.push({a:"curt:clr",ic:SVGI('<path d="M6 6l12 12M18 6L6 18"/>'),t:"Еврокарнизді тазалау"});
+  }else if(id==="cut"){
+    it.push({a:"cut:del",ic:ICO.cut,t:"Таңдалған нүктені өшіру"});
+    it.push({a:"cut:clean",ic:SVGI('<path d="M4 12h16"/><circle cx="12" cy="12" r="2.5"/>'),t:"Артық нүктелерді тазалау"});
+  }
+  return it;
+}
+function closeFly(){var f=document.querySelector("#ed2d .fly");if(f)f.parentNode.removeChild(f)}
+function openFly(btn){
+  closeFly();
+  var r=S.rooms[E.i];if(!r||!btn.isConnected)return;
+  var its=flyItems(btn.getAttribute("data-fly"),r);if(!its.length)return;
+  var cad=$("ed2d").querySelector(".cad");if(!cad)return;
+  var f=document.createElement("div");f.className="fly";
+  f.innerHTML=its.map(function(x){return'<button type="button" class="'+(x.on&&!x.chk?'on':'')+'" data-fa="'+x.a+'">'+x.ic+'<span>'+x.t+'</span>'+(x.chk?'<b class="fk">'+(x.on?'✓':'')+'</b>':'')+'</button>'}).join("");
+  cad.appendChild(f);
+  var cr=cad.getBoundingClientRect(),br=btn.getBoundingClientRect(),top=br.top-cr.top-6;
+  top=Math.max(8,Math.min(top,cr.height-f.offsetHeight-8));
+  f.style.top=top+"px";f.style.left=(br.right-cr.left+10)+"px";
+  if(navigator.vibrate){try{navigator.vibrate(15)}catch(e){}}
+}
+function setShape(i,v){
+  var r=S.rooms[i],d=r.dim,pS=d.s,pO=d.o||0,b0=bbox(r.poly);
+  if(v==="r")d.s="r";
+  else{d.s="l";d.o=+v.slice(1);
+    var l=b0.maxX-b0.minX,w=b0.maxY-b0.minY;
+    if(!(d.a>0))d.a=+(l*.4).toFixed(2);
+    if(!(d.b>0))d.b=+(w*.4).toFixed(2)}
+  if(d.s!==pS||(d.o||0)!==pO){r.gl=[];r.cw=[]}
+  E.toast="Пішін: "+(v==="r"?"төртбұрыш":"Г-тәрізді, кесік "+LNAME[+v.slice(1)]);
+  applyShape(i);
+}
+function flyAction(a){
+  var i=E.i,r=S.rooms[i];if(!r)return;
+  var p=a.split(":"),k=p[0],v=p[1];
+  if(k!=="cut"){E.sel=null;E.pick=null}
+  if(k==="shape"){setShape(i,v);return}
+  if(k==="pen"){
+    if(v==="draw"){r.mode="draw";r.draw=[]}
+    else if(v==="snap"){S.gr.snap=!S.gr.snap;E.toast="Тормен тарту: "+(S.gr.snap?"қосулы":"өшірулі")}
+    else if(v==="ortho"){S.gr.ortho=!S.gr.ortho;E.toast="Ось бойынша: "+(S.gr.ortho?"қосулы":"өшірулі")}
+    else if(v==="step"){var st=[.05,.1,.25,.5],ix=st.indexOf(S.gr.step);S.gr.step=st[(ix+1)%st.length];E.toast="Тор қадамы: "+Math.round(S.gr.step*100)+" см"}
+    save();drawRooms();return;
+  }
+  if(k==="light"&&v==="axes"){S.gr.axes=S.gr.axes===false;E.toast="Осьтерге тіркеу: "+(S.gr.axes?"қосулы":"өшірулі");save();drawEditor();return}
+  if(k==="light"){
+    r.mode="lights";r.draw=null;
+    var bb=bbox(r.poly),cx=(bb.minX+bb.maxX)/2,cy=(bb.minY+bb.maxY)/2;
+    if(v==="add"){pushHist(r);r.lights.push(clampToPoly(r.poly,cx+(Math.random()-.5)*.6,cy+(Math.random()-.5)*.6))}
+    else if(v==="chand"){pushHist(r);r.chand.on=true;r.chand.pts.push(clampToPoly(r.poly,cx+(Math.random()-.5)*.4,cy+(Math.random()-.5)*.4))}
+    else if(v==="trk"||v==="trkr"){pushHist(r);newTrk(r,v==="trkr"?"r":"s");E.toast=v==="trkr"?"Встроенный трек қосылды (30/60 см шамдар)":"Накладной трек қосылды (салбыраған шамдар)"}
+    else if(v==="del"){if(r.lights.length){pushHist(r);r.lights.pop()}}
+    drawRooms();return;
+  }
+  if(k==="glow"){r.mode="glow";r.draw=null;pushHist(r);r.gl=v==="all"?r.poly.map(function(q,n){return{e:n,a:0,b:1}}):[];drawRooms();return}
+  if(k==="curt"){r.mode="curtain";r.draw=null;pushHist(r);r.cw=v==="all"?r.poly.map(function(q,n){return{e:n,a:0,b:1}}):[];drawRooms();return}
+  if(k==="cut"){
+    if(v==="clean"){cleanVerts(i);return}
+    if(E.sel!=null&&r.poly.length>3)delVertex(i,E.sel);
+    else{E.toast=r.poly.length<=3?"Үш нүктеден кем болмайды":"Алдымен бұрышты (дөңгелекті) басып таңдаңыз";drawEditor()}
+  }
+}
+document.addEventListener("pointerdown",function(e){
+  flyHeld=false;
+  var inFly=e.target.closest&&e.target.closest(".fly");
+  if(!inFly)closeFly();
+  if(flyT){clearTimeout(flyT);flyT=null}
+  var b=e.target.closest&&e.target.closest("#ed2d .ct[data-fly]");
+  if(!b||inFly)return;
+  flyX=e.clientX;flyY=e.clientY;
+  flyT=setTimeout(function(){flyT=null;flyHeld=true;openFly(b)},450);
+},true);
+document.addEventListener("pointermove",function(e){if(flyT&&Math.hypot(e.clientX-flyX,e.clientY-flyY)>12){clearTimeout(flyT);flyT=null}},true);
+["pointerup","pointercancel"].forEach(function(n){document.addEventListener(n,function(){if(flyT){clearTimeout(flyT);flyT=null}},true)});
+document.addEventListener("contextmenu",function(e){if(e.target.closest&&e.target.closest("#ed2d .cad-tools"))e.preventDefault()});
+document.addEventListener("click",function(e){
+  if(flyHeld){flyHeld=false;if(e.target.closest&&e.target.closest("#ed2d .ct[data-fly]"))return}
+  var fa=e.target.closest&&e.target.closest("[data-fa]");if(fa){var fav=fa.getAttribute("data-fa");closeFly();flyAction(fav);return}
+  var pgb=e.target.getAttribute&&e.target.getAttribute("data-pg");if(pgb){showPage(pgb);return}
+  var vwb=e.target.getAttribute&&e.target.getAttribute("data-vw");if(vwb){setView(vwb);return}
+  if(e.target.getAttribute&&e.target.getAttribute("data-back")){showPage("calc");return}
+  var cmn=$("cadMenu"),tgm=e.target.getAttribute&&e.target.getAttribute("data-menu");
+  if(cmn){if(tgm){cmn.hidden=!cmn.hidden;return}if(!cmn.hidden)cmn.hidden=true}
+  if(e.target.getAttribute&&e.target.getAttribute("data-sheet")!==null){var shv=e.target.getAttribute("data-sheet");E.sheet=(shv&&E.sheet!==shv)||(shv==="panel"&&e.target.getAttribute("data-focus"))?shv:null;E.focus=e.target.getAttribute("data-focus")||null;if(E.vw!=="2d")setView("2d");else drawEditor();return}
+  if(e.target.getAttribute&&e.target.getAttribute("data-save")){save();E.toast="Сақталды ✓";drawEditor();return}
+  if(e.target.getAttribute&&e.target.getAttribute("data-cut")!==null){var rcu=S.rooms[E.i];if(E.sel!=null&&rcu.poly.length>3)delVertex(E.i,E.sel);else{E.toast=rcu.poly.length<=3?"Үш нүктеден кем болмайды":"Алдымен бұрышты (дөңгелекті) басып таңдаңыз";drawEditor()}return}
+  if(e.target.getAttribute&&e.target.getAttribute("data-clean")){cleanVerts(E.i);return}
+  var rsl=e.target.closest&&e.target.closest("[data-rsel]");
+  if(rsl){var sel3=$("v3room");sel3.value=rsl.getAttribute("data-rsel");sel3.dispatchEvent(new Event("change"));E.sheet=null;drawEditor();return}
+  if(e.target.getAttribute&&e.target.getAttribute("data-radd")){$("add").click();E.i=S.rooms.length-1;T3.ri=E.i;E.sel=null;E.pick=null;E.sheet=null;drawRooms();return}
+  var edb=e.target.getAttribute&&e.target.getAttribute("data-edit");if(edb!==null&&edb!==undefined){E.i=+edb;E.sel=null;E.pick=null;E.delAsk=false;T3.ri=E.i;drawRooms();showPage("ed");return}
+  var de=e.target.getAttribute("data-de");
+  if(de!==null){S.ex.splice(+de,1);drawEx();calc()}
+  var dr=e.target.getAttribute("data-dr"),dc=e.target.getAttribute("data-dc");
+  if(dr!==null&&S.rooms.length>1){S.rooms.splice(+dr,1);drawRooms()}
+  if(dc!==null&&S.cat.length>1){S.cat.splice(+dc,1);S.rooms.forEach(function(r){if(r.m>=S.cat.length)r.m=0});drawCat();drawRooms()}
+  var dpt=e.target.getAttribute("data-dpt");
+  if(dpt!==null&&S.ptypes.length>1){S.ptypes.splice(+dpt,1);S.rooms.forEach(function(r){r.pf.forEach(function(x){if(x.t>=S.ptypes.length)x.t=0})});drawPTypes();drawRooms()}
+  if(e.target.getAttribute){
+    if(e.target.getAttribute("data-rmask")!==null){E.delAsk=true;renderRmDel()}
+    if(e.target.getAttribute("data-rmno")!==null){E.delAsk=false;renderRmDel()}
+    if(e.target.getAttribute("data-rmyes")!==null&&S.rooms.length>1){S.rooms.splice(E.i,1);E.i=Math.min(E.i,S.rooms.length-1);E.sel=null;T3.ri=E.i;drawRooms()}
+  }
+  var pdl=e.target.getAttribute("data-pdel");
+  if(pdl!==null&&E.pick){var rq=S.rooms[+pdl],pk2=E.pick;pushHist(rq);
+    if(pk2.k==="light")rq.lights.splice(pk2.i,1);else if(pk2.k==="chand"){rq.chand.pts.splice(pk2.i,1);if(!rq.chand.pts.length)rq.chand.on=false}else rq.trks.splice(pk2.i,1);
+    E.pick=null;drawRooms()}
+  var pcl=e.target.getAttribute("data-pcl");if(pcl!==null){E.pick=null;drawEditor()}
+  var vsl=e.target.getAttribute("data-vsel");if(vsl!==null){var vs=vsl.split("-");E.sel=+vs[1];drawEditor()}
+  var vrm=e.target.getAttribute("data-vrm");if(vrm!==null){var vr=vrm.split("-");delVertex(+vr[0],+vr[1])}
+  var vad=e.target.getAttribute("data-vadd");if(vad!==null)addVertex(+vad);
+  var vdl=e.target.getAttribute("data-vdel");if(vdl!==null)delVertex(+vdl,E.sel);
+  var vmg=e.target.getAttribute("data-vmrg");if(vmg!==null){var vq=vmg.split("-");mergeVerts(+vq[0],+vq[1])}
+  var vcn=e.target.getAttribute("data-vclean");if(vcn!==null)cleanVerts(+vcn);
+  var vcl=e.target.getAttribute("data-vcl");if(vcl!==null){E.sel=null;E.pick=null;E.delAsk=false;drawEditor()}
+  var addpf=e.target.getAttribute("data-addpf");
+  if(addpf!==null){var rpf=S.rooms[addpf],lastT=rpf.pf.length?rpf.pf[rpf.pf.length-1].t:-1;rpf.pf.push({t:(lastT+1)%S.ptypes.length,len:pfRest(rpf,-1)});drawPf(+addpf);calc()}
+  var pfr=e.target.getAttribute("data-pfrest");
+  if(pfr!==null){var pq=pfr.split("-"),pri=+pq[0],pj2=+pq[1],rr2=S.rooms[pri];rr2.pf[pj2].len=pfRest(rr2,pj2);drawPf(pri);calc()}
+  var dpf=e.target.getAttribute("data-dpf");
+  if(dpf!==null){var parts=dpf.split("-"),ri=+parts[0],pj=+parts[1];if(S.rooms[ri].pf.length>1){S.rooms[ri].pf.splice(pj,1);drawPf(ri);calc()}}
+  var addv=e.target.getAttribute("data-addv");
+  if(addv!==null){
+    var r=S.rooms[addv],bb=bbox(r.poly),last=r.poly[r.poly.length-1];
+    r.poly.push({x:+(last.x).toFixed(2),y:+(last.y+1).toFixed(2)});
+    drawRooms();
+  }
+  var dv=e.target.getAttribute("data-dv");
+  if(dv!==null){var pr=dv.split("-"),ri2=+pr[0],vi2=+pr[1];if(S.rooms[ri2].poly.length>3){S.rooms[ri2].poly.splice(vi2,1);drawRooms()}}
+  var addlight=e.target.getAttribute("data-addlight");
+  if(addlight!==null){
+    var r2=S.rooms[addlight],bb2=bbox(r2.poly),cx=(bb2.minX+bb2.maxX)/2,cy=(bb2.minY+bb2.maxY)/2;
+    var pt2=clampToPoly(r2.poly,cx+(Math.random()-0.5)*0.6,cy+(Math.random()-0.5)*0.6);
+    pushHist(r2);r2.lights.push(pt2);drawRooms();
+  }
+  var dellight=e.target.getAttribute("data-dellight");
+  if(dellight!==null){var r3=S.rooms[dellight];if(r3.lights.length){pushHist(r3);r3.lights.pop()}drawRooms()}
+  var md=e.target.getAttribute("data-mode");
+  if(md!==null){var rm=S.rooms[+e.target.getAttribute("data-ri")];E.sel=null;E.pick=null;E.delAsk=false;rm.mode=md;rm.draw=md==="draw"?[]:null;drawRooms()}
+  var chp=e.target.getAttribute("data-chandp");
+  if(chp!==null){var rch=S.rooms[+chp];pushHist(rch);rch.chand.on=true;var bbc=bbox(rch.poly),cc=clampToPoly(rch.poly,(bbc.minX+bbc.maxX)/2+(Math.random()-.5)*.4,(bbc.minY+bbc.maxY)/2+(Math.random()-.5)*.4);rch.chand.pts.push(cc);drawRooms();}
+  var chm=e.target.getAttribute("data-chandm");
+  if(chm!==null){var rch2=S.rooms[+chm];if(rch2.chand.pts.length){pushHist(rch2);rch2.chand.pts.pop();if(!rch2.chand.pts.length)rch2.chand.on=false;drawRooms();}}
+  var trp=e.target.getAttribute("data-trkp");
+  if(trp!==null){var rt=S.rooms[+trp];pushHist(rt);newTrk(rt,"s");drawRooms();}
+  var trm=e.target.getAttribute("data-trkm");
+  if(trm!==null){var rt2=S.rooms[+trm];if(rt2.trks.length){pushHist(rt2);rt2.trks.pop();drawRooms();}}
+  var dtrk=e.target.getAttribute("data-dtrk");
+  if(dtrk!==null){var dp=dtrk.split("-"),dri=+dp[0],dtj=+dp[1];pushHist(S.rooms[dri]);S.rooms[dri].trks.splice(dtj,1);drawRooms();}
+  var cwa=e.target.getAttribute("data-cwall");
+  if(cwa!==null){var rwa=S.rooms[+cwa];pushHist(rwa);rwa.cw=rwa.poly.map(function(p,i){return{e:i,a:0,b:1}});drawRooms();}
+  var cwc=e.target.getAttribute("data-cwclr");
+  if(cwc!==null){var rwc=S.rooms[+cwc];pushHist(rwc);rwc.cw=[];drawRooms();}
+  var gla=e.target.getAttribute("data-glall");
+  if(gla!==null){var rga=S.rooms[+gla];pushHist(rga);rga.gl=rga.poly.map(function(p,i){return{e:i,a:0,b:1}});drawRooms();}
+  var glc=e.target.getAttribute("data-glclr");
+  if(glc!==null){var rgc=S.rooms[+glc];pushHist(rgc);rgc.gl=[];drawRooms();}
+  var hu=e.target.getAttribute("data-hundo");if(hu!==null)histStep(+hu,false);
+  var hrd=e.target.getAttribute("data-hredo");if(hrd!==null)histStep(+hrd,true);
+  var dcl=e.target.getAttribute("data-dclose");if(dcl!==null)closeDraw(+dcl);
+  var dun=e.target.getAttribute("data-dundo");
+  if(dun!==null){var rd=S.rooms[+dun];if(rd.draw&&rd.draw.length){rd.draw.pop();renderPlan(+dun);drawCount(+dun)}}
+  var dca=e.target.getAttribute("data-dcancel");
+  if(dca!==null){var rc=S.rooms[+dca];rc.draw=null;rc.mode="pts";drawRooms()}
+  var bl=e.target.getAttribute("data-build");
+  if(bl!==null){var r4=S.rooms[bl],d=r4.dim,l=d.l||3,w=d.w||3,a=Math.min(d.a||0,l-.1),b=Math.min(d.b||0,w-.1);
+    r4.poly=(d.s==="l"&&a>0&&b>0)?[{x:0,y:0},{x:+(l-a).toFixed(2),y:0},{x:+(l-a).toFixed(2),y:b},{x:l,y:b},{x:l,y:w},{x:0,y:w}]:[{x:0,y:0},{x:l,y:0},{x:l,y:w},{x:0,y:w}];
+    r4.lights=r4.lights.map(function(p){return clampToPoly(r4.poly,p.x,p.y)});drawRooms()}
+});
+$("add").addEventListener("click",function(){
+  S.rooms.push({n:"Бөлме "+(S.rooms.length+1),m:0,pf:[{t:0,len:12}],
+    poly:[{x:0,y:0},{x:3,y:0},{x:3,y:3},{x:0,y:3}],lights:[],chand:{on:false,pts:[]},trks:[],gl:[],cw:[],view:"2d",h:2.6,color:"#ffffff",dim:{s:"r",l:3,w:3,a:1,b:1},mode:"pts"});
+  drawRooms();
+});
+$("addpt").addEventListener("click",function(){S.ptypes.push({n:"Жаңа профиль",p:1000});drawPTypes();drawRooms()});
+$("addc").addEventListener("click",function(){S.cat.push({n:"Жаңа материал",p:3000});drawCat();drawRooms()});
+$("adde").addEventListener("click",function(){S.ex.push({n:"Жаңа материал",p:1000,q:1});drawEx();calc()});
+function makePdf(){
+  var btn=$("print"),txt=btn.textContent;
+  function fallback(){try{window.print()}catch(x){}}
+  if(typeof html2canvas==="undefined"||!window.jspdf){fallback();return}
+  btn.disabled=true;btn.textContent="PDF дайындалуда…";
+  var wrap=document.createElement("div");
+  wrap.className="kp";
+  wrap.style.cssText="position:fixed;left:-10000px;top:0;width:760px;background:#fff;color:#000;padding:24px;--bg:#fff;--card:#fff;--ink:#000;--mute:#444;--line:#bbb;--acc:#0b7a75;--accbg:#dff1ef";
+  wrap.innerHTML=$("kp").innerHTML;
+  document.body.appendChild(wrap);
+  var props=["fill","fill-opacity","stroke","stroke-width","stroke-opacity","stroke-linejoin","stroke-linecap","stroke-dasharray","font-size","font-weight","text-anchor"];
+  wrap.querySelectorAll("svg *").forEach(function(el){var cs=getComputedStyle(el);props.forEach(function(k){el.style.setProperty(k,cs.getPropertyValue(k))})});
+  wrap.querySelectorAll("svg").forEach(function(sv){var vb=(sv.getAttribute("viewBox")||"").split(" ");if(vb.length===4){sv.setAttribute("width",vb[2]);sv.setAttribute("height",vb[3]);sv.style.width="100%";sv.style.height="auto"}});
+  function done(){if(wrap.parentNode)wrap.parentNode.removeChild(wrap);btn.disabled=false;btn.textContent=txt}
+  html2canvas(wrap,{scale:2,backgroundColor:"#fff",useCORS:true}).then(function(canvas){
+    var pdf=new window.jspdf.jsPDF({unit:"mm",format:"a4"}),m=10,iw=210-2*m,ratio=iw/canvas.width,pageH=Math.floor((297-2*m)/ratio);
+    for(var y=0,pg=0;y<canvas.height;y+=pageH,pg++){
+      var c2=document.createElement("canvas");c2.width=canvas.width;c2.height=Math.min(pageH,canvas.height-y);
+      c2.getContext("2d").drawImage(canvas,0,y,canvas.width,c2.height,0,0,canvas.width,c2.height);
+      if(pg)pdf.addPage();
+      pdf.addImage(c2.toDataURL("image/jpeg",.92),"JPEG",m,m,iw,c2.height*ratio);
+    }
+    var Cap=window.Capacitor,P=Cap&&Cap.Plugins;
+    if(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()&&P&&P.Filesystem&&P.Share){
+      var b64=pdf.output("datauristring").split("base64,")[1];
+      P.Filesystem.writeFile({path:"KP.pdf",data:b64,directory:"CACHE"}).then(function(r){return P.Share.share({title:"КП",url:r.uri,dialogTitle:"КП PDF"})}).then(done,function(err){done();if(!err||!/cancel/i.test(String(err.message||err)))alert("PDF сақтау қатесі")});
+    }else{pdf.save("KP.pdf");done()}
+  }).catch(function(){done();fallback()});
+}
+$("print").addEventListener("click",makePdf);
+["sh","cp","spot","mont","roll","trk","glow","cw"].forEach(function(id){$(id).value=S[id]});$("v3gain").value=S.gain;
+$("cl").value=S.client||"";$("co").value=S.company||"";
+
+// ---- drag/edit on plan ----
+var dragState=null;
+function planFrame(ri){var p=planSvg2D(S.rooms[ri],ri);return{bb:p.bb,sc:p.sc,P:p.P,W:p.W}}
+function toWorld(ri,e,fr){
+  var svg=$("plan"+ri).querySelector("svg"),pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;
+  var q=pt.matrixTransform(svg.getScreenCTM().inverse());
+  return{x:fr.bb.minX+(q.x-fr.P)/fr.sc,y:fr.bb.minY+(q.y-fr.P)/fr.sc};
+}
+document.addEventListener("pointerdown",function(e){
+  var el=e.target.closest&&e.target.closest("[data-drag]"),svg=e.target.closest&&e.target.closest("svg[data-ri]");
+  if(!svg)return;
+  var ri=+svg.getAttribute("data-ri"),r=S.rooms[ri];
+  if(r.mode==="glow"||r.mode==="curtain"){
+    var frg=planFrame(ri),wg=toWorld(ri,e,frg),eb=-1,db=1e9,ng=r.poly.length;
+    for(var q=0;q<ng;q++){var dq=distSeg(wg,r.poly[q],r.poly[(q+1)%ng]);if(dq<db){db=dq;eb=q}}
+    if(eb<0||db*frg.sc>18)return;
+    var tg=glT(r,eb,wg);var gk0=r.mode==="curtain"?"cw":"gl";dragState={kind:"glow",key:gk0,ri:ri,e:eb,t0:tg,fr:frg,moved:false};GPRE={ri:ri,e:eb,a:tg,b:tg,key:gk0};
+    try{svg.setPointerCapture(e.pointerId)}catch(x){}e.preventDefault();return;
+  }
+  if(r.mode==="draw"){
+    var fr0=planFrame(ri),w0=toWorld(ri,e,fr0);r.draw=r.draw||[];
+    var f0=r.draw[0];
+    if(f0&&r.draw.length>=3&&Math.hypot(w0.x-f0.x,w0.y-f0.y)*fr0.sc<14){closeDraw(ri);return}
+    var lp=r.draw[r.draw.length-1]||null,n0=snapW(w0,fr0.sc,lp,null);
+    if(lp&&n0.x===lp.x&&n0.y===lp.y)return;
+    r.draw.push(n0);renderPlan(ri);drawCount(ri);return;
+  }
+  if(el){pushHist(r);dragState={ri:ri,kind:el.getAttribute("data-drag"),idx:+(el.getAttribute("data-vi")||el.getAttribute("data-li")||el.getAttribute("data-ci")||el.getAttribute("data-ti")||0),fr:planFrame(ri)};if(dragState.kind==="light"||dragState.kind==="chand"||dragState.kind==="trk"){var q0=dragState.kind==="light"?r.lights[dragState.idx]:dragState.kind==="chand"?r.chand.pts[dragState.idx]:{x:r.trks[dragState.idx].cx,y:r.trks[dragState.idx].cy};dragState.sx=q0.x;dragState.sy=q0.y}if(dragState.kind==="vtx"){var v0=r.poly[dragState.idx];dragState.sx=v0.x;dragState.sy=v0.y}if(dragState.kind==="trk"){var w1=toWorld(ri,e,dragState.fr),t1=r.trks[dragState.idx];dragState.off={x:t1.cx-w1.x,y:t1.cy-w1.y}}try{svg.setPointerCapture(e.pointerId)}catch(x){}e.preventDefault();return}
+  if(r.mode!=="pts")return;
+  var fr=planFrame(ri),w=toWorld(ri,e,fr),best=0,bd=1e9;
+  for(var i=0;i<r.poly.length;i++){var d=distSeg(w,r.poly[i],r.poly[(i+1)%r.poly.length]);if(d<bd){bd=d;best=i}}
+  if(E.an)return;
+  if(bd*fr.sc<14){pushHist(r);var np=snapW(w,fr.sc,null,null);glSplit(r,best);r.poly.splice(best+1,0,np);drawRooms()}
+  else if(E.sel!=null||E.pick){E.sel=null;E.pick=null;drawEditor()}
+});
+document.addEventListener("pointermove",function(e){
+  if(!dragState)return;
+  if(dragState.kind==="glow"){glowMove(e);return}
+  var d=dragState,r=S.rooms[d.ri],w=toWorld(d.ri,e,d.fr),bb=d.fr.bb;
+  if(d.kind==="trk"){var tt=r.trks[d.idx],cp0=snapW({x:w.x+d.off.x,y:w.y+d.off.y},d.fr.sc,null,null),axt=axisSnap(r,d,cp0,d.fr.sc),cp={x:axt.x,y:axt.y},bt2=bbox(r.poly),hf=Math.max(.1,Math.min(+tt.len||0,(tt.o==="y"?bt2.maxY-bt2.minY:bt2.maxX-bt2.minX)-.2))/2;
+    if(tt.o==="y")cp.y=Math.min(Math.max(cp.y,bt2.minY+hf),bt2.maxY-hf);else cp.x=Math.min(Math.max(cp.x,bt2.minX+hf),bt2.maxX-hf);
+    var cl=clampToPoly(r.poly,cp.x,cp.y);tt.cx=+cl.x.toFixed(3);tt.cy=+cl.y.toFixed(3);setGuide(d.ri,axt,tt.cx,tt.cy);d.moved=true;renderPlan(d.ri,d.fr);return}
+  w=snapW(w,d.fr.sc,null,d.kind==="vtx"?[r.poly[(d.idx+r.poly.length-1)%r.poly.length],r.poly[(d.idx+1)%r.poly.length]]:null);
+  if(d.kind==="vtx"){r.poly[d.idx]={x:+Math.min(Math.max(w.x,bb.minX),bb.maxX).toFixed(2),y:+Math.min(Math.max(w.y,bb.minY),bb.maxY).toFixed(2)}}
+  else{var axl=axisSnap(r,d,w,d.fr.sc),pt=clampToPoly(r.poly,axl.x,axl.y);if(d.kind==="light")r.lights[d.idx]=pt;else r.chand.pts[d.idx]=pt;setGuide(d.ri,axl,pt.x,pt.y)}
+  d.moved=true;renderPlan(d.ri,d.fr);
+});
+function endDrag(){if(!dragState)return;var d=dragState;dragState=null;GUIDE=null;if(d.kind==="glow"){glowFinish(d);return}
+  if(d.kind==="light"||d.kind==="chand"||d.kind==="trk"){
+    var rp=S.rooms[d.ri],tg=d.kind==="light"?rp.lights[d.idx]:d.kind==="chand"?rp.chand.pts[d.idx]:rp.trks[d.idx];
+    if(tg&&d.sx!==undefined&&Math.hypot((d.kind==="trk"?tg.cx:tg.x)-d.sx,(d.kind==="trk"?tg.cy:tg.y)-d.sy)<.07){
+      if(d.kind==="trk"){tg.cx=d.sx;tg.cy=d.sy}else{tg.x=d.sx;tg.y=d.sy}
+      var hp=rp.hist;if(hp&&hp.length)hp.pop();
+      E.sel=null;E.delAsk=false;E.pick={k:d.kind,i:d.idx};drawEditor();return;
+    }
+  }
+  if(d.kind==="vtx"&&d.moved){var cv=S.rooms[d.ri].poly[d.idx];if(cv&&cv.x===d.sx&&cv.y===d.sy)d.moved=false}
+  if(d.kind==="vtx"&&d.moved){
+    var rr=S.rooms[d.ri],nn=rr.poly.length,me=rr.poly[d.idx];
+    if(nn>3&&me)for(var jj=0;jj<nn;jj++){if(jj===d.idx)continue;var oj=rr.poly[jj];
+      if(Math.hypot(oj.x-me.x,oj.y-me.y)*d.fr.sc<12){
+        if((d.idx+1)%nn===jj){mergeVerts(d.ri,d.idx,"q",true);return}
+        if((d.idx-1+nn)%nn===jj){mergeVerts(d.ri,jj,"p",true);return}
+        break}}
+  }
+  if(d.kind==="vtx"&&!d.moved){var hv=S.rooms[d.ri].hist;if(hv&&hv.length)hv.pop();E.sel=d.idx;drawEditor();return}
+  if(!d.moved){var h0=S.rooms[d.ri].hist;if(h0&&h0.length)h0.pop()}if(d.kind==="vtx"&&d.moved)drawRooms();else{renderPlan(d.ri);calc()}}
+document.addEventListener("focusin",function(e){
+  var t=e.target;if(!t.getAttribute||t.getAttribute("data-vk")===null)return;
+  var r=S.rooms[+t.getAttribute("data-ri")];if(r)pushHist(r);
+});
+document.addEventListener("focusout",function(e){
+  var t=e.target;if(!t.getAttribute||t.getAttribute("data-vk")===null)return;
+  var r=S.rooms[+t.getAttribute("data-ri")];if(!r||!r.hist||!r.hist.length)return;
+  var last=JSON.parse(r.hist[r.hist.length-1]);
+  if(JSON.stringify(last.p)===JSON.stringify(r.poly))r.hist.pop();else{fixInside(r);save();renderPlan(+t.getAttribute("data-ri"));calc()}
+});
+document.addEventListener("toggle",function(e){var t=e.target;if(t.getAttribute&&t.getAttribute("data-setd"))E.setOpen=t.open},true);
+document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.matches&&e.target.matches("input[data-wl]"))e.target.blur()});
+var rzT=0;
+var lastPW=0;
+window.addEventListener("resize",function(){clearTimeout(rzT);rzT=setTimeout(function(){
+  if(dragState||$("pgEd").hidden||$("ed2d").hidden)return;
+  var ae=document.activeElement;
+  if(ae&&/INPUT|SELECT|TEXTAREA/.test(ae.tagName||"")&&$("pgEd").contains(ae))return; // пернетақта ашылғанда өріс фокусын жоғалтпау
+  var w=planWidth(E.i);if(Math.abs(w-lastPW)<4)return;
+  lastPW=w;drawEditor();
+},200)});
+document.addEventListener("pointerup",endDrag);
+document.addEventListener("pointercancel",endDrag);
+document.addEventListener("dblclick",function(e){
+  var el=e.target.closest&&e.target.closest('[data-drag="vtx"]');if(!el)return;
+  var ri=+el.closest("svg[data-ri]").getAttribute("data-ri"),r=S.rooms[ri];
+  if(r.poly.length>3){pushHist(r);var vdel=+el.getAttribute("data-vi");glDel(r,vdel);r.poly.splice(vdel,1);drawRooms()}
+});
+
+// ---- 3D (three.js): drag = look, WASD / buttons = walk ----
+var T3={ready:false,ri:0,keys:{},yaw:0,pitch:0,pos:null,timer:0,built:-1};
+function fillV3(){
+  var sel=$("v3room");if(!sel)return;
+  if(T3.ri>=S.rooms.length)T3.ri=0;
+  sel.innerHTML=S.rooms.map(function(r,i){return '<option value="'+i+'"'+(i===T3.ri?' selected':'')+'>'+esc(r.n)+'</option>'}).join("");
+  sched3D();
+}
+function sched3D(){clearTimeout(T3.timer);T3.timer=setTimeout(build3D,200)}
+function init3D(){
+  if(T3.ready)return true;
+  var box=$("v3");
+  if(typeof THREE==="undefined"){if(!T3.err){T3.err=1;box.insertAdjacentHTML("afterbegin",'<div class="v3err">3D кітапханасы жүктелмеді.</div>')}return false}
+  try{T3.r=new THREE.WebGLRenderer({antialias:true})}catch(e){if(!T3.err){T3.err=1;box.insertAdjacentHTML("afterbegin",'<div class="v3err">Бұл құрылғыда немесе браузерде 3D (WebGL) қолжетімсіз.</div>')}return false}
+  T3.r.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  box.insertBefore(T3.r.domElement,box.firstChild);
+  T3.sc=new THREE.Scene();T3.sc.background=new THREE.Color(0x1b1c1e);
+  T3.cam=new THREE.PerspectiveCamera(70,1,.05,60);T3.cam.rotation.order="YXZ";
+  T3.grp=new THREE.Group();T3.sc.add(T3.grp);T3.ready=true;
+  function size(){var w=box.clientWidth||320,h=box.clientHeight||320;T3.r.setSize(w,h,false);T3.r.domElement.style.width="100%";T3.r.domElement.style.height="100%";T3.cam.aspect=w/h;T3.cam.updateProjectionMatrix()}
+  size();window.addEventListener("resize",size);
+  var down=null;
+  box.addEventListener("pointerdown",function(e){if(e.target.closest(".dpad"))return;down={x:e.clientX,y:e.clientY};try{box.setPointerCapture(e.pointerId)}catch(x){}});
+  box.addEventListener("pointermove",function(e){if(!down)return;T3.yaw-=(e.clientX-down.x)*.006;T3.pitch=Math.max(-1.3,Math.min(1.3,T3.pitch-(e.clientY-down.y)*.006));down={x:e.clientX,y:e.clientY}});
+  ["pointerup","pointercancel"].forEach(function(n){box.addEventListener(n,function(){down=null})});
+  window.addEventListener("keydown",function(e){if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName||""))return;T3.keys[e.key.toLowerCase()]=1});
+  window.addEventListener("keyup",function(e){T3.keys[e.key.toLowerCase()]=0});
+  box.querySelectorAll(".dpad button").forEach(function(b){var k=b.getAttribute("data-k");
+    b.addEventListener("pointerdown",function(e){e.stopPropagation();T3.keys[k]=1});
+    ["pointerup","pointerleave","pointercancel"].forEach(function(n){b.addEventListener(n,function(){T3.keys[k]=0})})});
+  var last=0;
+  function loop(t){
+    requestAnimationFrame(loop);
+    if(!box.offsetParent)return;
+    var dt=Math.min(.05,(t-last)/1000||0);last=t;
+    var r=S.rooms[T3.ri];if(!r||!T3.pos)return;
+    var f=(T3.keys.w?1:0)-(T3.keys.s?1:0),sd=(T3.keys.d?1:0)-(T3.keys.a?1:0);
+    if(f||sd){
+      var sp=1.6*dt,fx=-Math.sin(T3.yaw),fz=-Math.cos(T3.yaw),rx=Math.cos(T3.yaw),rz=-Math.sin(T3.yaw);
+      var nx=T3.pos.x+(fx*f+rx*sd)*sp,nz=T3.pos.z+(fz*f+rz*sd)*sp;
+      if(pointInPoly(r.poly,nx,-nz)){T3.pos.x=nx;T3.pos.z=nz}
+      else if(pointInPoly(r.poly,nx,-T3.pos.z))T3.pos.x=nx;
+      else if(pointInPoly(r.poly,T3.pos.x,-nz))T3.pos.z=nz;
+    }
+    T3.cam.position.set(T3.pos.x,T3.pos.y,T3.pos.z);
+    T3.cam.rotation.set(T3.pitch,T3.yaw,0);
+    T3.r.render(T3.sc,T3.cam);
+  }
+  requestAnimationFrame(loop);
+  return true;
+}
+function addTracks3D(r,g,h,gk){
+  (r.trks||[]).forEach(function(tr){
+    var sg=trkSeg(r,tr),tx=(sg.a.x+sg.b.x)/2,ty=(sg.a.y+sg.b.y)/2,tang=Math.atan2(sg.b.y-sg.a.y,sg.b.x-sg.a.x),tl=Math.max(sg.len,.1),
+        ux=Math.cos(tang),uy=Math.sin(tang),rec=tr.k==="r",white=(tr.c||(rec?"w":"b"))==="w",pl=0,k;
+    var bodyM=new THREE.MeshStandardMaterial({color:white?0xf2f2f2:0x222222,roughness:.5,side:THREE.DoubleSide}),
+        lmat=new THREE.MeshBasicMaterial({color:0xfff3e0,side:THREE.DoubleSide});
+    if(rec){
+      /* ВСТРОЕННЫЙ: төбемен тең, ұзын сызықтық шамдар (30 немесе 60 см) */
+      var prof=new THREE.Mesh(new THREE.BoxGeometry(tl,.012,.07),bodyM);prof.position.set(tx,h-.006,-ty);prof.rotation.y=tang;g.add(prof);
+      var slot=new THREE.Mesh(new THREE.BoxGeometry(Math.max(tl-.03,.05),.0125,.034),new THREE.MeshBasicMaterial({color:white?0x1b1b1b:0x3a3a3a}));slot.position.set(tx,h-.0062,-ty);slot.rotation.y=tang;g.add(slot);
+      var ml=+tr.ll===.3?.3:.6,gap=.12;ml=Math.min(ml,Math.max(tl-.04,.1));
+      var n=Math.max(1,Math.floor((tl-.04+gap)/(ml+gap))),total=n*ml+(n-1)*gap,
+          lG=new THREE.BoxGeometry(ml,.012,.022),hG=new THREE.PlaneGeometry(ml+.1,.2).rotateX(Math.PI/2),
+          hM=new THREE.MeshBasicMaterial({color:0xffe2b0,transparent:true,opacity:Math.min(.35,.2*gk),side:THREE.DoubleSide});
+      for(k=0;k<n;k++){
+        var off=-total/2+ml/2+k*(ml+gap),px=tx+ux*off,py=ty+uy*off;
+        var lm=new THREE.Mesh(lG,lmat);lm.position.set(px,h-.0135,-py);lm.rotation.y=tang;g.add(lm);
+        var hh=new THREE.Mesh(hG,hM);hh.position.set(px,h-.014,-py);hh.rotation.y=tang;g.add(hh);
+        if(pl<3&&(n<=3||k%2===0)){pl++;var RL=new THREE.PointLight(0xfff3e0,.45*gk,6);RL.position.set(px,h-.2,-py);g.add(RL)}
+      }
+    }else{
+      /* НАКЛАДНОЙ: төбеге бекітілген, шамдар салбырап тұрады */
+      var bar=new THREE.Mesh(new THREE.BoxGeometry(tl,.035,.045),bodyM);bar.position.set(tx,h-.0185,-ty);bar.rotation.y=tang;g.add(bar);
+      var nh=Math.max(2,Math.min(6,Math.round(tl/.6))),drop=.45,rimY=h-.037-drop,cl=drop-.1,
+          cordG=new THREE.CylinderGeometry(.004,.004,cl,6),cordM=new THREE.MeshBasicMaterial({color:white?0xcfcfcf:0x101010}),
+          domeG=new THREE.SphereGeometry(.1,20,10,0,Math.PI*2,0,Math.PI/2),discG=new THREE.CircleGeometry(.094,20).rotateX(Math.PI/2),
+          bulbG=new THREE.SphereGeometry(.03,10,8);
+      for(k=0;k<nh;k++){
+        var tt=(k+.5)/nh-.5,hx=tx+ux*tl*tt,hy=ty+uy*tl*tt;
+        var cord=new THREE.Mesh(cordG,cordM);cord.position.set(hx,h-.037-cl/2,-hy);g.add(cord);
+        var dome=new THREE.Mesh(domeG,bodyM);dome.position.set(hx,rimY,-hy);g.add(dome);
+        var bulb=new THREE.Mesh(bulbG,lmat);bulb.position.set(hx,rimY+.03,-hy);g.add(bulb);
+        var disc=new THREE.Mesh(discG,lmat);disc.position.set(hx,rimY-.003,-hy);g.add(disc);
+        if(pl<3&&k%2===0){pl++;var SL=new THREE.PointLight(0xfff3e0,.55*gk,6);SL.position.set(hx,rimY-.15,-hy);g.add(SL)}
+      }
+    }
+  });
+}
+function build3D(){
+  var e3=$("ed3d"),pe=$("pgEd");if(!e3||!pe||e3.hidden||pe.hidden)return;
+  if(!init3D())return;
+  var r=S.rooms[T3.ri];if(!r)return;
+  T3.grp.traverse(function(o){if(o.geometry)o.geometry.dispose();if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(function(m){m.dispose()})});
+  T3.sc.remove(T3.grp);T3.grp=new THREE.Group();T3.sc.add(T3.grp);
+  var g=T3.grp,h=r.h||2.6,poly=r.poly,mt=S.cat[r.m]||S.cat[0],nm=(mt.n||"").toLowerCase();
+  var rough=/глян|gloss|лак/.test(nm)?.12:/сатин|satin/.test(nm)?.45:.92;
+  var shape=new THREE.Shape(poly.map(function(p){return new THREE.Vector2(p.x,p.y)}));
+  g.add(new THREE.Mesh(new THREE.ShapeGeometry(shape).rotateX(-Math.PI/2),new THREE.MeshStandardMaterial({color:0x9c8f7d,roughness:.8,side:THREE.DoubleSide})));
+  g.add(new THREE.Mesh(new THREE.ShapeGeometry(shape).rotateX(-Math.PI/2).translate(0,h,0),new THREE.MeshStandardMaterial({color:new THREE.Color(r.color||"#ffffff"),roughness:rough,metalness:rough<.2?.25:0,side:THREE.DoubleSide})));
+  var wm=new THREE.MeshStandardMaterial({color:0xf1ede6,roughness:.95,side:THREE.DoubleSide});
+  for(var i=0;i<poly.length;i++){
+    var a=poly[i],b=poly[(i+1)%poly.length],gm=new THREE.BufferGeometry();
+    gm.setAttribute("position",new THREE.Float32BufferAttribute([a.x,0,-a.y,b.x,0,-b.y,b.x,h,-b.y,a.x,0,-a.y,b.x,h,-b.y,a.x,h,-a.y],3));
+    gm.computeVertexNormals();g.add(new THREE.Mesh(gm,wm));
+  }
+  var gk=(S.gain===undefined?40:S.gain)/100;
+  g.add(new THREE.AmbientLight(0xffffff,.45));g.add(new THREE.HemisphereLight(0xffffff,0x887766,.5));
+  var pts=r.lights.slice();if(r.chand&&r.chand.on)(r.chand.pts||[]).forEach(function(p){pts.unshift({x:p.x,y:p.y,ch:1})});
+  var disk=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});
+  var rimM=new THREE.MeshStandardMaterial({color:0xd9dde2,roughness:.3,metalness:.5}),holeM=new THREE.MeshBasicMaterial({color:0x1b1b1b,side:THREE.DoubleSide}),lensM=new THREE.MeshBasicMaterial({color:0xfff4d6,side:THREE.DoubleSide});
+  var rimG=new THREE.CylinderGeometry(.065,.065,.03,28),holeG=new THREE.CircleGeometry(.05,24).rotateX(Math.PI/2),lensG=new THREE.CircleGeometry(.036,24).rotateX(Math.PI/2);
+  pts.forEach(function(p,i){
+    if(p.ch){var m=new THREE.Mesh(new THREE.CircleGeometry(.14,20).rotateX(Math.PI/2),disk);m.position.set(p.x,h-.01,-p.y);g.add(m)}
+    else{
+      var rim=new THREE.Mesh(rimG,rimM);rim.position.set(p.x,h-.015,-p.y);g.add(rim);
+      var hole=new THREE.Mesh(holeG,holeM);hole.position.set(p.x,h-.031,-p.y);g.add(hole);
+      var lens=new THREE.Mesh(lensG,lensM);lens.position.set(p.x,h-.0325,-p.y);g.add(lens);
+    }
+    if(i<8){var L=new THREE.PointLight(0xfff3e0,(p.ch?.9:.55)*gk,7);L.position.set(p.x,h-.15,-p.y);g.add(L)}
+  });
+  var gmat=new THREE.MeshBasicMaterial({color:0xffc977}),ghalo=new THREE.MeshBasicMaterial({color:0xffb347,transparent:true,opacity:.28*gk,side:THREE.DoubleSide});
+  (r.gl||[]).forEach(function(sg,si){
+    var A=poly[sg.e],B=poly[(sg.e+1)%poly.length];if(!A||!B)return;
+    var ga={x:A.x+(B.x-A.x)*sg.a,y:A.y+(B.y-A.y)*sg.a},gb={x:A.x+(B.x-A.x)*sg.b,y:A.y+(B.y-A.y)*sg.b},gl=Math.hypot(gb.x-ga.x,gb.y-ga.y);
+    if(gl<.03)return;
+    var gang=Math.atan2(gb.y-ga.y,gb.x-ga.x),gmx=(ga.x+gb.x)/2,gmy=(ga.y+gb.y)/2;
+    var strip=new THREE.Mesh(new THREE.BoxGeometry(gl,.02,.03),gmat);strip.position.set(gmx,h-.03,-gmy);strip.rotation.y=gang;g.add(strip);
+    var halo=new THREE.Mesh(new THREE.PlaneGeometry(gl,.3).rotateX(Math.PI/2),ghalo);halo.position.set(gmx,h-.012,-gmy);halo.rotation.y=gang;g.add(halo);
+    if(si<3){var GL=new THREE.PointLight(0xffb870,.35*gk,4);GL.position.set(gmx,h-.2,-gmy);g.add(GL)}
+  });
+  (function(){
+    var n=poly.length,cxm=0,cym=0;poly.forEach(function(p){cxm+=p.x;cym+=p.y});cxm/=n;cym/=n;
+    var nicheM=new THREE.MeshBasicMaterial({color:0x101010}),railM=new THREE.MeshStandardMaterial({color:0xcfcfcf,roughness:.4}),clothM=new THREE.MeshStandardMaterial({color:0xe6dccd,roughness:.9,side:THREE.DoubleSide,transparent:true,opacity:.92});
+    (r.cw||[]).forEach(function(sg){
+      var A=poly[sg.e],B=poly[(sg.e+1)%n];if(!A||!B)return;
+      var ga={x:A.x+(B.x-A.x)*sg.a,y:A.y+(B.y-A.y)*sg.a},gb={x:A.x+(B.x-A.x)*sg.b,y:A.y+(B.y-A.y)*sg.b},gl=Math.hypot(gb.x-ga.x,gb.y-ga.y);
+      if(gl<.05)return;
+      var ang=Math.atan2(gb.y-ga.y,gb.x-ga.x),mx=(ga.x+gb.x)/2,my=(ga.y+gb.y)/2,ex=B.x-A.x,ey=B.y-A.y,el=Math.hypot(ex,ey)||1,nx=-ey/el,ny=ex/el;
+      if((cxm-mx)*nx+(cym-my)*ny<0){nx=-nx;ny=-ny}
+      var niche=new THREE.Mesh(new THREE.BoxGeometry(gl,.012,.16),nicheM);niche.position.set(mx+nx*.1,h-.006,-(my+ny*.1));niche.rotation.y=ang;g.add(niche);
+      var rail=new THREE.Mesh(new THREE.BoxGeometry(gl,.015,.025),railM);rail.position.set(mx+nx*.07,h-.018,-(my+ny*.07));rail.rotation.y=ang;g.add(rail);
+      var chh=Math.max(.5,h-.1),geo=new THREE.PlaneGeometry(gl,chh,Math.max(8,Math.round(gl*10)),1),pos=geo.attributes.position;
+      for(var q=0;q<pos.count;q++)pos.setZ(q,Math.sin(pos.getX(q)*14)*.03);
+      geo.computeVertexNormals();
+      var cloth=new THREE.Mesh(geo,clothM);cloth.position.set(mx+nx*.1,h-.04-chh/2,-(my+ny*.1));cloth.rotation.y=ang;g.add(cloth);
+    });
+  })();
+  addTracks3D(r,g,h,gk);
+  var bb=bbox(poly),c=clampToPoly(poly,(bb.minX+bb.maxX)/2,(bb.minY+bb.maxY)/2),ey=Math.min(1.6,h*.62);
+  if(!T3.pos||T3.built!==T3.ri||!pointInPoly(poly,T3.pos.x,-T3.pos.z)){T3.pos={x:c.x,y:ey,z:-c.y};T3.yaw=0;T3.pitch=.1}
+  T3.pos.y=ey;T3.built=T3.ri;
+}
+/*CLEAN-BEGIN*/
+function cleanRoom(o){
+  if(!o||typeof o!=="object")return null;
+  var N=function(v,lo,hi,d){v=(typeof v==="number"||(typeof v==="string"&&v.trim()!==""))?+v:NaN;if(!isFinite(v))return d;return Math.min(hi,Math.max(lo,v))};
+  var R=function(v){return Math.round(v*1000)/1000};
+  var P=function(a,max){
+    var out=[];if(!Array.isArray(a))return out;
+    for(var i=0;i<a.length&&out.length<max;i++){
+      var p=a[i];if(!p||typeof p!=="object")continue;
+      var x=N(p.x,-500,500,NaN),y=N(p.y,-500,500,NaN);
+      if(isFinite(x)&&isFinite(y))out.push({x:R(x),y:R(y)});
+    }
+    return out;
+  };
+  if(!Array.isArray(o.poly)||o.poly.length<3||o.poly.length>120)return null;
+  var poly=P(o.poly,120);if(poly.length!==o.poly.length)return null;
+  var n=poly.length;
+  var G=function(a,max){
+    var out=[];if(!Array.isArray(a))return out;
+    for(var i=0;i<a.length&&out.length<max;i++){
+      var g=a[i];if(!g||typeof g!=="object")continue;
+      if(typeof g.e!=="number"||g.e!==Math.floor(g.e)||g.e<0||g.e>=n)continue;
+      var a1=N(g.a,0,1,0),b1=N(g.b,0,1,1);
+      if(Math.abs(b1-a1)<1e-4)continue;
+      out.push({e:g.e,a:R(Math.min(a1,b1)),b:R(Math.max(a1,b1))});
+    }
+    return out;
+  };
+  var trks=[],ta=Array.isArray(o.trks)?o.trks:[];
+  for(var i=0;i<ta.length&&trks.length<30;i++){
+    var t=ta[i];if(!t||typeof t!=="object")continue;
+    var cx=N(t.cx,-500,500,NaN),cy=N(t.cy,-500,500,NaN);
+    if(!isFinite(cx)||!isFinite(cy))continue;
+    trks.push({o:t.o==="y"?"y":"x",cx:R(cx),cy:R(cy),len:R(N(t.len,.1,50,1)),k:t.k==="r"?"r":"s",c:(t.c==="w"||(!t.c&&t.k==="r"))?"w":"b",ll:+t.ll===.3?.3:.6});
+  }
+  var ch=(o.chand&&typeof o.chand==="object")?o.chand:{};
+  return{v:1,n:String(o.n==null?"":o.n).slice(0,60),h:R(N(o.h,1.8,6,2.6)),color:/^#[0-9a-fA-F]{6}$/.test(o.color)?o.color:"#ffffff",mat:String(o.mat==null?"":o.mat).slice(0,40),gain:Math.round(N(o.gain,0,100,40)),poly:poly,lights:P(o.lights,200),chand:{on:!!ch.on,pts:P(ch.pts,30)},gl:G(o.gl,200),cw:G(o.cw,200),trks:trks};
+}
+/*CLEAN-END*/
+
+// ---- 3D бөлісу: бөлменің 3D моделін сілтеме ретінде жіберу ----
+var SH={url:"",busy:false,last:null};
+function shSheet(state,msg,url){
+  var el=$("shSheet");el.hidden=false;SH.url=url||"";
+  $("shT").textContent=state==="ok"?"Сілтеме дайын":state==="busy"?"Сілтеме жасалуда…":"Сілтеме жасалмады";
+  $("shM").textContent=msg||"";
+  $("shU").hidden=state!=="ok";$("shU").value=url||"";
+  Array.prototype.forEach.call(el.querySelectorAll("[data-sh]"),function(b){
+    var k=b.getAttribute("data-sh");
+    b.hidden=(k!=="close"&&state!=="ok")||(k==="share"&&!navigator.share);
+  });
+}
+function openExt(u){
+  try{var C=window.Capacitor;if(C&&C.Plugins&&C.Plugins.Browser){C.Plugins.Browser.open({url:u});return}}catch(e){}
+  window.open(u,"_blank");
+}
+function shCopy(t){
+  function fb(){var i=$("shU");i.hidden=false;i.select();try{document.execCommand("copy")}catch(e){}}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(fb);else fb();
+  $("shM").textContent="Көшірілді ✓";
+}
+function shareRoom(){
+  if(SH.busy)return;
+  var api=((window.TOBE_CFG&&window.TOBE_CFG.api)||"").replace(/\/+$/,""),key="";
+  try{key=localStorage.getItem("tobe_lic")||""}catch(e){}
+  var r=S.rooms[T3.ri];if(!r)return;
+  if(!api){shSheet("err","Бөлісу үшін лицензия серверінің мекенжайы (api) қосымшада көрсетілуі керек.");return}
+  if(!key){shSheet("err","Лицензия кілті табылмады.");return}
+  var body=cleanRoom({n:r.n,h:r.h,color:r.color,mat:(S.cat[r.m]||S.cat[0]||{}).n,gain:S.gain,poly:r.poly,lights:r.lights,chand:r.chand,gl:r.gl,cw:r.cw,trks:r.trks});
+  if(!body){shSheet("err","Бөлменің пішіні дұрыс емес.");return}
+  var txt=JSON.stringify(body);
+  if(SH.last&&SH.last.t===txt){shSheet("ok","Бөлме өзгерген жоқ, сілтеме сол күйінде.",SH.last.u);return}
+  SH.busy=true;shSheet("busy","Серверге жіберіліп жатыр…");
+  var ctl=window.AbortController?new AbortController():null,tm=setTimeout(function(){if(ctl)ctl.abort()},15000);
+  fetch(api+"/share",{method:"POST",headers:{"content-type":"application/json","x-license":key},body:txt,signal:ctl?ctl.signal:undefined})
+    .then(function(res){return res.json().then(function(j){return{s:res.status,j:j}})})
+    .then(function(x){
+      if(x.s===200&&x.j&&x.j.id){var u=api+"/?v="+x.j.id;SH.last={t:txt,u:u};shSheet("ok","Сілтемені клиентке жіберіңіз: ол браузерде бөлменің 3D моделін көреді. Баға мен смета көрінбейді. Сілтеме 180 күн жұмыс істейді.",u)}
+      else if(x.s===401)shSheet("err","Лицензия жарамсыз немесе мерзімі аяқталған. Жазылымды ұзартыңыз.");
+      else if(x.s===413)shSheet("err","Бөлме деректері тым үлкен.");
+      else shSheet("err","Сервер қатесі ("+x.s+"). Кейінірек қайталаңыз.");
+    },function(){shSheet("err","Интернет жоқ немесе сервер жауап бермеді.")})
+    .then(function(){clearTimeout(tm);SH.busy=false});
+}
+$("v3share").addEventListener("click",shareRoom);
+$("shSheet").addEventListener("click",function(e){
+  if(e.target===this){this.hidden=true;return}
+  var b=e.target.closest&&e.target.closest("[data-sh]");if(!b)return;
+  var k=b.getAttribute("data-sh"),u=SH.url;
+  if(k==="close")this.hidden=true;
+  else if(k==="copy"&&u)shCopy(u);
+  else if(k==="share"&&u&&navigator.share)navigator.share({title:"Төбе · 3D модель",text:"Бөлменің 3D моделі",url:u}).catch(function(){});
+  else if(k==="wa"&&u)openExt("https://wa.me/?text="+encodeURIComponent("Бөлменің 3D моделі: "+u));
+  else if(k==="tg"&&u)openExt("https://t.me/share/url?url="+encodeURIComponent(u)+"&text="+encodeURIComponent("Бөлменің 3D моделі"));
+});
+
+// ---- 3D көру режимі: сілтемені ашқан адам тек бөлмені көреді ----
+function viewerMsg(t,err){
+  document.documentElement.classList.toggle("verr",!!err);
+  var el=$("v3msg");
+  if(!el){el=document.createElement("div");el.id="v3msg";el.className="v3err";$("v3").insertBefore(el,$("v3").firstChild)}
+  el.textContent=t||"";el.hidden=!t;
+}
+function bootViewer(){
+  document.title="3D модель · Төбе";
+  $("pgCalc").hidden=true;$("pgCalcB").hidden=true;$("pgEd").hidden=false;
+  document.body.classList.add("edfull");document.querySelector("main").classList.add("wide");
+  E.vw="3d";$("ed2d").hidden=true;$("ed3d").hidden=false;
+  S={cat:[{n:"Мат",p:0}],ptypes:[],ex:[],gr:D.gr,gain:40,rooms:[]};
+  $("v3room").innerHTML="<option>…</option>";$("v3room").disabled=true;
+  $("v3gain").value=S.gain;
+  viewerMsg("Жүктелуде…");
+  fetch(location.origin+"/share/"+VIEW,{cache:"no-store"})
+    .then(function(res){return res.json().then(function(j){return{s:res.status,j:j}})})
+    .then(function(x){
+      var c=x.s===200?cleanRoom(x.j):null;
+      if(!c){viewerMsg(x.s===404?"Сілтеме табылмады немесе мерзімі өткен.":"Бөлмені ашу мүмкін болмады.",true);return}
+      S.cat=[{n:c.mat||"Мат",p:0}];S.gain=c.gain;
+      c.m=0;c.view="3d";
+      S.rooms=[c];T3.ri=0;$("v3gain").value=S.gain;
+      viewerMsg("");fillV3();
+    },function(){viewerMsg("Интернет жоқ немесе сервер жауап бермеді.",true)});
+}
+
+$("v3room").addEventListener("change",function(){T3.ri=+this.value;E.i=T3.ri;E.sel=null;E.pick=null;E.delAsk=false;drawEditor();build3D()});
+
+if(VIEW)bootViewer();else{drawCat();drawEx();drawPTypes();drawRooms()}
+</script>
+</body>
+</html>
