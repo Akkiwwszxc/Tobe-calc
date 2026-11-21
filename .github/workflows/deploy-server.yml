@@ -3,7 +3,8 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["**/server/**", "server/**"]
+    # server өзгерсе немесе қосымша беті (www/index.html) өзгерсе, 3D көру беті де жаңарады
+    paths: ["**/server/**", "server/**", "**/www/index.html", "www/index.html"]
 concurrency:
   group: deploy-license-server
   cancel-in-progress: false
@@ -21,12 +22,25 @@ jobs:
           node-version: 20
 
       - name: Check secrets
+        id: s
         run: |
+          MISSING=""
           for v in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID LICENSE_PRIVATE_JWK; do
-            if [ -z "${!v}" ]; then echo "::error::GitHub Secrets ішінде $v жоқ (Settings → Secrets and variables → Actions → Repository secrets)"; exit 1; fi
+            if [ -z "${!v}" ]; then MISSING="$MISSING $v"; fi
           done
+          if [ -n "$MISSING" ]; then
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "::error::GitHub Secrets ішінде жоқ:$MISSING (Settings → Secrets and variables → Actions → Repository secrets)"
+              exit 1
+            fi
+            echo "::notice::Secrets әлі қойылмаған ($MISSING ), сервер орнату өткізілді. Secrets қойған соң Actions → Deploy license server → Run workflow басыңыз."
+            echo "have=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "have=1" >> "$GITHUB_OUTPUT"
 
       - name: Check private key matches the app
+        if: steps.s.outputs.have == '1'
         run: |
           cat > "$RUNNER_TEMP/chk.js" <<'EOF'
           const fs = require("fs");
@@ -52,6 +66,7 @@ jobs:
 
       - name: Find server folder
         id: p
+        if: steps.s.outputs.have == '1'
         run: |
           F=$(find . -name wrangler.toml -not -path "*/node_modules/*" | head -n 1)
           if [ -z "$F" ]; then
@@ -62,7 +77,20 @@ jobs:
           echo "dir=$(dirname "$F")" >> "$GITHUB_OUTPUT"
           echo "Server folder: $(dirname "$F")"
 
+      - name: Copy app as 3D viewer page
+        if: steps.s.outputs.have == '1'
+        run: |
+          APP=$(find . -path "*/www/index.html" -not -path "*/node_modules/*" -not -path "./.git/*" | head -n 1)
+          if [ -z "$APP" ]; then
+            echo "::error::www/index.html табылмады: 3D көру беті жасалмайды."
+            exit 1
+          fi
+          mkdir -p "${{ steps.p.outputs.dir }}/public"
+          cp "$APP" "${{ steps.p.outputs.dir }}/public/index.html"
+          echo "Көру беті: $APP → ${{ steps.p.outputs.dir }}/public/index.html"
+
       - name: Check Cloudflare access
+        if: steps.s.outputs.have == '1'
         working-directory: ${{ steps.p.outputs.dir }}
         run: |
           if ! npx --yes wrangler@4 whoami; then
@@ -71,6 +99,7 @@ jobs:
           fi
 
       - name: Prepare KV namespace
+        if: steps.s.outputs.have == '1'
         working-directory: ${{ steps.p.outputs.dir }}
         run: |
           cat > "$RUNNER_TEMP/kvid.js" <<'EOF'
@@ -95,6 +124,7 @@ jobs:
 
       - name: Deploy
         id: dep
+        if: steps.s.outputs.have == '1'
         working-directory: ${{ steps.p.outputs.dir }}
         run: |
           set +e
@@ -111,10 +141,12 @@ jobs:
           echo "Worker URL: $URL"
 
       - name: Set private key secret
+        if: steps.s.outputs.have == '1'
         working-directory: ${{ steps.p.outputs.dir }}
         run: printf '%s' "$LICENSE_PRIVATE_JWK" | npx --yes wrangler@4 secret put LICENSE_PRIVATE_JWK
 
       - name: Smoke test and show address
+        if: steps.s.outputs.have == '1'
         run: |
           URL="${{ steps.dep.outputs.url }}"
           if [ -z "$URL" ]; then
@@ -128,10 +160,12 @@ jobs:
           done
           if [ -z "$OK" ]; then echo "::error::Сервер жауап бермеді: $URL/plans"; exit 1; fi
           echo "Сервер жауабы:"; cat plans.json; echo
+          if curl -fsS "$URL/" | grep -qi "<html"; then VIEW="жұмыс істейді"; else VIEW="ЖАУАП ЖОҚ (беттің көшірмесін тексеріңіз)"; fi
           {
             printf '## ✅ Лицензия сервері орнатылды\n\n'
             printf 'Мекенжай: `%s`\n\n' "$URL"
             printf 'www/index.html ішіндегі лицензия блогына қойыңыз:\n\n'
             printf '    api: "%s",\n\n' "$URL"
-            printf 'Режим: `%s`\n' "$(node -e 'const j=require("./plans.json");console.log(j.mode)')"
+            printf 'Режим: `%s`\n\n' "$(node -e 'const j=require("./plans.json");console.log(j.mode)')"
+            printf '3D көру беті: %s\n' "$VIEW"
           } >> "$GITHUB_STEP_SUMMARY"
