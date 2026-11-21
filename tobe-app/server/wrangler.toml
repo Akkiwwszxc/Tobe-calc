@@ -13,3 +13,10 @@ PLANS = '[{"id":"m1","months":1,"price":3000,"title":"1 ай"},{"id":"m3","month
 [[kv_namespaces]]
 binding = "ORDERS"
 id = "__KV_ID__"
+
+# 3D көру беті: public/index.html GitHub Actions арқылы www/index.html-ден көшіріледі.
+# Сілтеме https://….workers.dev/?v=КОД осы бетті ашады.
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true

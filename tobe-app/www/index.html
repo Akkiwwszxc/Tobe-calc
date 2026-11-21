@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1b1c1e">
+<meta property="og:title" content="Төбе · 3D модель потолка">
+<meta property="og:description" content="Бөлменің 3D моделін ашыңыз: айналдырып, жүріп көріңіз. Откройте 3D-модель комнаты.">
+<meta property="og:type" content="website">
 <title>Төбе калькуляторы</title>
 <style>
 :root{color-scheme:dark;--bg:#1b1c1e;--card:#26272a;--ink:#eceff3;--mute:#a3abb5;--line:#3d4046;--acc:#4aa3ff;--accbg:#1f3550;--sum:#ffab00;--sumink:#1b1c1e;
@@ -177,6 +180,26 @@ body.edfull #pgEd{position:fixed;inset:0;z-index:40;overflow:hidden;background:#
 .v3gain{position:absolute;left:12px;bottom:calc(62px + env(safe-area-inset-bottom,0px));width:calc(100% - 208px);min-width:130px;height:48px;z-index:5;display:flex;align-items:center;gap:10px;padding:0 16px;background:rgba(38,39,42,.92);border:1px solid #3d4046;border-radius:999px;color:#a3abb5;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .v3gain svg{width:22px;height:22px;flex:none}
 .v3gain input{flex:1;min-width:0;width:100%;margin:0;accent-color:#4aa3ff;background:transparent}
+.v3share{position:absolute;right:12px;top:calc(122px + env(safe-area-inset-top,0px));z-index:6;width:46px;height:46px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(38,39,42,.92);color:#eceff3;border:1px solid #3d4046;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.v3share svg{width:22px;height:22px;pointer-events:none}
+.v3share:active{background:#4aa3ff;color:#0e1522;border-color:#4aa3ff}
+#shSheet{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+#shSheet[hidden]{display:none}
+#shSheet .sh-box{width:100%;max-width:460px;max-height:90%;overflow:auto;background:#26272a;color:#eceff3;border:1px solid #3d4046;border-bottom:0;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+#shSheet b{display:block;font-size:18px;margin-bottom:6px}
+#shSheet p{margin:6px 0 10px;color:#a3abb5;font-size:14px;line-height:1.4}
+#shSheet input{width:100%;margin:0 0 10px;font:14px ui-monospace,Menlo,Consolas,monospace;color:#eceff3;background:#1b1c1e;border:1px solid #3d4046;border-radius:10px;padding:11px 12px}
+#shSheet .sh-row{display:flex;gap:8px;margin-bottom:8px}
+#shSheet button{flex:1;font:inherit;font-weight:600;padding:12px 10px;border-radius:14px;border:1px solid #3d4046;background:#3a3c40;color:#eceff3}
+#shSheet button[hidden]{display:none}
+#shSheet button.pr{background:#ffab00;border-color:#ffab00;color:#1b1c1e}
+#shSheet button:active{background:#4aa3ff;border-color:#4aa3ff;color:#0e1522}
+html.viewer #pgCalc,html.viewer #pgCalcB,html.viewer .pgnav,html.viewer .cad-top,html.viewer #ed2d,html.viewer .v3share{display:none!important}
+html.viewer .v3top{top:calc(12px + env(safe-area-inset-top,0px))}
+html.viewer .v3top select{background-image:none;padding-right:18px;text-align:center;text-align-last:center}
+html.viewer .v3top select:disabled{opacity:1;color:#eceff3;-webkit-text-fill-color:#eceff3}
+html.viewer .v3gain{max-width:360px}
+html.verr .v3top,html.verr .v3gain,html.verr .dpad,html.verr .v3hint{display:none!important}
 .v3hint{position:absolute;left:12px;right:12px;width:fit-content;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5;max-width:calc(100% - 24px);margin:0 auto;text-align:center;font-size:12px;color:#a3abb5;background:rgba(27,28,30,.72);border-radius:8px;padding:2px 8px;pointer-events:none}
 .cad{position:absolute;inset:0}
 .cad-canvas{position:absolute;left:0;right:0;top:calc(122px + env(safe-area-inset-top,0px));bottom:86px;padding-left:58px;display:flex;align-items:center;justify-content:center}
@@ -242,6 +265,8 @@ var LIC = {
   price: ""
 };
 /* ====================================================== */
+// Негізгі скрипт 3D бөлісу үшін сервер мекенжайын осыдан алады
+if (typeof window !== "undefined") window.TOBE_CFG = { api: LIC.api };
 
 var LS_KEY = "tobe_lic", LS_SEEN = "tobe_ls", LS_DID = "tobe_did";
 var G = (typeof globalThis !== "undefined") ? globalThis : window;
@@ -299,6 +324,8 @@ if (typeof document === "undefined" || !document.documentElement) return;
 
 /* ===================== ИНТЕРФЕЙС ===================== */
 var html = document.documentElement;
+// 3D көру сілтемесі (?v=КОД): тек бөлменің 3D моделін көрсетеді, есептеу бөлімі ашылмайды
+if (/[?&]v=[A-Za-z0-9]{6,40}(&|$)/.test(location.search)) { html.classList.add("viewer"); return; }
 html.classList.add("lic-lock"); // тексерілгенше қосымша жабық
 var LS_ORD = "tobe_ord";
 
@@ -669,9 +696,17 @@ setInterval(check, 5 * 60 * 1000);
 <div id="ed3d" hidden>
 <div class="v3" id="v3"><div class="dpad"><span></span><button type="button" data-k="w" aria-label="Алға"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button><span></span><button type="button" data-k="a" aria-label="Солға"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><button type="button" data-k="s" aria-label="Артқа"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><button type="button" data-k="d" aria-label="Оңға"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></div></div>
 <div class="v3top"><select id="v3room" aria-label="Бөлме"></select></div>
+<button type="button" class="v3share" id="v3share" aria-label="Бөлісу"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
 <label class="v3gain" for="v3gain" title="Жарық қарқыны"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg><input id="v3gain" type="range" min="0" max="100" step="5" aria-label="Жарық қарқыны"></label>
 <div class="v3hint">Айналдыру: сүйреңіз · жүру: W A S D (немесе батырмалар)</div>
 </div>
+<div id="shSheet" hidden><div class="sh-box" role="dialog" aria-modal="true" aria-labelledby="shT">
+<b id="shT"></b><p id="shM"></p>
+<input id="shU" type="text" readonly spellcheck="false" aria-label="Сілтеме" hidden>
+<div class="sh-row"><button type="button" class="pr" data-sh="copy" hidden>Көшіру</button><button type="button" data-sh="share" hidden>Бөлісу</button></div>
+<div class="sh-row"><button type="button" data-sh="wa" hidden>WhatsApp</button><button type="button" data-sh="tg" hidden>Telegram</button></div>
+<div class="sh-row"><button type="button" data-sh="close">Жабу</button></div>
+</div></div>
 </div>
 </div>
 
@@ -699,6 +734,7 @@ rooms:[{n:"Қонақ бөлме",m:1,pf:[{t:0,len:15}],
   lights:[{x:1,y:1},{x:3,y:1},{x:1,y:2.5},{x:3,y:2.5}],
   chand:{on:true,pts:[{x:2,y:1.75}]},view:"2d"}]
 };
+var VIEW=(function(){var m=/[?&]v=([A-Za-z0-9]{6,40})(?:&|$)/.exec(location.search||"");return m?m[1]:""})(); // 3D көру режимі (сілтеме ?v=КОД)
 var S=D;
 try{
   var raw=localStorage.getItem("tobe-v3");
@@ -713,7 +749,7 @@ try{
     if(!r.view)r.view="2d";if(!r.h)r.h=2.6;if(!r.color)r.color="#ffffff";if(!r.dim)r.dim={s:"r",l:4,w:3.5,a:1.5,b:1};r.mode=(!r.mode||r.mode==="draw")?"pts":r.mode;r.draw=null;
   });
 }catch(e){S=D}
-function save(){try{localStorage.setItem("tobe-v3",JSON.stringify(S,function(k,v){return(k==="hist"||k==="fut")?undefined:v}))}catch(e){}}
+function save(){if(VIEW)return;try{localStorage.setItem("tobe-v3",JSON.stringify(S,function(k,v){return(k==="hist"||k==="fut")?undefined:v}))}catch(e){}}
 var $=function(id){return document.getElementById(id)};
 var fmt=function(n,d){return n.toLocaleString("ru-RU",{minimumFractionDigits:d||0,maximumFractionDigits:d||0})};
 var pos=function(v){v=parseFloat(v);return isFinite(v)&&v>0?v:0};
@@ -1342,7 +1378,7 @@ document.addEventListener("change",function(e){
     if(dk2==="l")resizeRoom(+di,pos(t.value),null);else if(dk2==="w")resizeRoom(+di,null,pos(t.value));else applyShape(+di);}
 });
 document.addEventListener("input",function(e){
-  if(e.target.id==="v3gain"){S.gain=+e.target.value;save();sched3D();return}
+  if(e.target.id==="v3gain"){S.gain=+e.target.value;save();applyGain();return}
   var t=e.target,g=t.getAttribute("data-g"),i=t.getAttribute("data-i"),e2=t.getAttribute("data-e"),c=t.getAttribute("data-c"),pt=t.getAttribute("data-pt"),pi=t.getAttribute("data-pi"),key=t.getAttribute("data-k");
   var vri=t.getAttribute("data-ri"),vvi=t.getAttribute("data-vi"),vk=t.getAttribute("data-vk");
   if(g){S[g]=(g==="client"||g==="company")?t.value:pos(t.value);calc();}
@@ -1715,16 +1751,16 @@ function init3D(){
   var box=$("v3");
   if(typeof THREE==="undefined"){if(!T3.err){T3.err=1;box.insertAdjacentHTML("afterbegin",'<div class="v3err">3D кітапханасы жүктелмеді.</div>')}return false}
   try{T3.r=new THREE.WebGLRenderer({antialias:true})}catch(e){if(!T3.err){T3.err=1;box.insertAdjacentHTML("afterbegin",'<div class="v3err">Бұл құрылғыда немесе браузерде 3D (WebGL) қолжетімсіз.</div>')}return false}
-  T3.r.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  T3.r.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5)); // 2-ден 1.5-ке: кадр жылдамырақ, сурет сәл ғана жұмсақ
   box.insertBefore(T3.r.domElement,box.firstChild);
   T3.sc=new THREE.Scene();T3.sc.background=new THREE.Color(0x1b1c1e);
   T3.cam=new THREE.PerspectiveCamera(70,1,.05,60);T3.cam.rotation.order="YXZ";
   T3.grp=new THREE.Group();T3.sc.add(T3.grp);T3.ready=true;
-  function size(){var w=box.clientWidth||320,h=box.clientHeight||320;T3.r.setSize(w,h,false);T3.r.domElement.style.width="100%";T3.r.domElement.style.height="100%";T3.cam.aspect=w/h;T3.cam.updateProjectionMatrix()}
+  function size(){T3.dirty=true;var w=box.clientWidth||320,h=box.clientHeight||320;T3.r.setSize(w,h,false);T3.r.domElement.style.width="100%";T3.r.domElement.style.height="100%";T3.cam.aspect=w/h;T3.cam.updateProjectionMatrix()}
   size();window.addEventListener("resize",size);
   var down=null;
   box.addEventListener("pointerdown",function(e){if(e.target.closest(".dpad"))return;down={x:e.clientX,y:e.clientY};try{box.setPointerCapture(e.pointerId)}catch(x){}});
-  box.addEventListener("pointermove",function(e){if(!down)return;T3.yaw-=(e.clientX-down.x)*.006;T3.pitch=Math.max(-1.3,Math.min(1.3,T3.pitch-(e.clientY-down.y)*.006));down={x:e.clientX,y:e.clientY}});
+  box.addEventListener("pointermove",function(e){if(!down)return;T3.dirty=true;T3.yaw-=(e.clientX-down.x)*.006;T3.pitch=Math.max(-1.3,Math.min(1.3,T3.pitch-(e.clientY-down.y)*.006));down={x:e.clientX,y:e.clientY}});
   ["pointerup","pointercancel"].forEach(function(n){box.addEventListener(n,function(){down=null})});
   window.addEventListener("keydown",function(e){if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName||""))return;T3.keys[e.key.toLowerCase()]=1});
   window.addEventListener("keyup",function(e){T3.keys[e.key.toLowerCase()]=0});
@@ -1744,7 +1780,10 @@ function init3D(){
       if(pointInPoly(r.poly,nx,-nz)){T3.pos.x=nx;T3.pos.z=nz}
       else if(pointInPoly(r.poly,nx,-T3.pos.z))T3.pos.x=nx;
       else if(pointInPoly(r.poly,T3.pos.x,-nz))T3.pos.z=nz;
+      T3.dirty=true;
     }
+    if(!T3.dirty)return; // ештеңе өзгермесе қайта салмаймыз: батарея мен қызуды үнемдейді
+    T3.dirty=false;
     T3.cam.position.set(T3.pos.x,T3.pos.y,T3.pos.z);
     T3.cam.rotation.set(T3.pitch,T3.yaw,0);
     T3.r.render(T3.sc,T3.cam);
@@ -1752,7 +1791,18 @@ function init3D(){
   requestAnimationFrame(loop);
   return true;
 }
-function addTracks3D(r,g,h,gk){
+/* Нүктелік жарық көздері: бір пиксельге есептеу жарық санына тура пропорционал, сондықтан жалпы саны 8-ден аспайды.
+   Жарық күші userData.b ішінде сақталады, ползунок сахнаны қайта құрмай-ақ intensity-ді өзгертеді (applyGain). */
+function pLight(g,col,I,dist,x,y,z,gk){var L=new THREE.PointLight(col,I*gk,dist);L.userData.b=I;L.position.set(x,y,z);g.add(L);return L}
+function applyGain(){
+  if(!T3.grp)return;var gk=(S.gain===undefined?40:S.gain)/100;
+  T3.grp.traverse(function(o){
+    if(o.isLight&&o.userData&&o.userData.b!==undefined)o.intensity=o.userData.b*gk;
+    var m=o.material;if(m&&!Array.isArray(m)&&m.userData&&m.userData.gk)m.opacity=Math.min(m.userData.gk.cap,m.userData.gk.k*gk);
+  });
+  T3.dirty=true;
+}
+function addTracks3D(r,g,h,gk,LB){
   (r.trks||[]).forEach(function(tr){
     var sg=trkSeg(r,tr),tx=(sg.a.x+sg.b.x)/2,ty=(sg.a.y+sg.b.y)/2,tang=Math.atan2(sg.b.y-sg.a.y,sg.b.x-sg.a.x),tl=Math.max(sg.len,.1),
         ux=Math.cos(tang),uy=Math.sin(tang),rec=tr.k==="r",white=(tr.c||(rec?"w":"b"))==="w",pl=0,k;
@@ -1765,12 +1815,12 @@ function addTracks3D(r,g,h,gk){
       var ml=+tr.ll===.3?.3:.6,gap=.12;ml=Math.min(ml,Math.max(tl-.04,.1));
       var n=Math.max(1,Math.floor((tl-.04+gap)/(ml+gap))),total=n*ml+(n-1)*gap,
           lG=new THREE.BoxGeometry(ml,.012,.022),hG=new THREE.PlaneGeometry(ml+.1,.2).rotateX(Math.PI/2),
-          hM=new THREE.MeshBasicMaterial({color:0xffe2b0,transparent:true,opacity:Math.min(.35,.2*gk),side:THREE.DoubleSide});
+          hM=new THREE.MeshBasicMaterial({color:0xffe2b0,transparent:true,opacity:Math.min(.35,.2*gk),side:THREE.DoubleSide});hM.userData.gk={k:.2,cap:.35};
       for(k=0;k<n;k++){
         var off=-total/2+ml/2+k*(ml+gap),px=tx+ux*off,py=ty+uy*off;
         var lm=new THREE.Mesh(lG,lmat);lm.position.set(px,h-.0135,-py);lm.rotation.y=tang;g.add(lm);
         var hh=new THREE.Mesh(hG,hM);hh.position.set(px,h-.014,-py);hh.rotation.y=tang;g.add(hh);
-        if(pl<3&&(n<=3||k%2===0)){pl++;var RL=new THREE.PointLight(0xfff3e0,.45*gk,6);RL.position.set(px,h-.2,-py);g.add(RL)}
+        if(!pl&&LB.t>0&&k===(n>>1)){pl=1;LB.t--;pLight(g,0xfff3e0,.45*LB.tb,6,px,h-.2,-py,gk)}
       }
     }else{
       /* НАКЛАДНОЙ: төбеге бекітілген, шамдар салбырап тұрады */
@@ -1785,7 +1835,7 @@ function addTracks3D(r,g,h,gk){
         var dome=new THREE.Mesh(domeG,bodyM);dome.position.set(hx,rimY,-hy);g.add(dome);
         var bulb=new THREE.Mesh(bulbG,lmat);bulb.position.set(hx,rimY+.03,-hy);g.add(bulb);
         var disc=new THREE.Mesh(discG,lmat);disc.position.set(hx,rimY-.003,-hy);g.add(disc);
-        if(pl<3&&k%2===0){pl++;var SL=new THREE.PointLight(0xfff3e0,.55*gk,6);SL.position.set(hx,rimY-.15,-hy);g.add(SL)}
+        if(!pl&&LB.t>0&&k===(nh>>1)){pl=1;LB.t--;pLight(g,0xfff3e0,.55*LB.tb,6,hx,rimY-.15,-hy,gk)}
       }
     }
   });
@@ -1810,6 +1860,7 @@ function build3D(){
   var gk=(S.gain===undefined?40:S.gain)/100;
   g.add(new THREE.AmbientLight(0xffffff,.45));g.add(new THREE.HemisphereLight(0xffffff,0x887766,.5));
   var pts=r.lights.slice();if(r.chand&&r.chand.on)(r.chand.pts||[]).forEach(function(p){pts.unshift({x:p.x,y:p.y,ch:1})});
+  var LB={s:0,maxS:5,step:Math.max(1,Math.ceil(pts.length/5)),boost:Math.min(2,Math.max(1,pts.length/5)),t:2,tb:1.6,g:1};
   var disk=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});
   var rimM=new THREE.MeshStandardMaterial({color:0xd9dde2,roughness:.3,metalness:.5}),holeM=new THREE.MeshBasicMaterial({color:0x1b1b1b,side:THREE.DoubleSide}),lensM=new THREE.MeshBasicMaterial({color:0xfff4d6,side:THREE.DoubleSide});
   var rimG=new THREE.CylinderGeometry(.065,.065,.03,28),holeG=new THREE.CircleGeometry(.05,24).rotateX(Math.PI/2),lensG=new THREE.CircleGeometry(.036,24).rotateX(Math.PI/2);
@@ -1820,9 +1871,9 @@ function build3D(){
       var hole=new THREE.Mesh(holeG,holeM);hole.position.set(p.x,h-.031,-p.y);g.add(hole);
       var lens=new THREE.Mesh(lensG,lensM);lens.position.set(p.x,h-.0325,-p.y);g.add(lens);
     }
-    if(i<8){var L=new THREE.PointLight(0xfff3e0,(p.ch?.9:.55)*gk,7);L.position.set(p.x,h-.15,-p.y);g.add(L)}
+    if(LB.s<LB.maxS&&(p.ch||i%LB.step===0)){LB.s++;pLight(g,0xfff3e0,(p.ch?.9:.55)*LB.boost,7,p.x,h-.15,-p.y,gk)}
   });
-  var gmat=new THREE.MeshBasicMaterial({color:0xffc977}),ghalo=new THREE.MeshBasicMaterial({color:0xffb347,transparent:true,opacity:.28*gk,side:THREE.DoubleSide});
+  var gmat=new THREE.MeshBasicMaterial({color:0xffc977}),ghalo=new THREE.MeshBasicMaterial({color:0xffb347,transparent:true,opacity:.28*gk,side:THREE.DoubleSide});ghalo.userData.gk={k:.28,cap:9};
   (r.gl||[]).forEach(function(sg,si){
     var A=poly[sg.e],B=poly[(sg.e+1)%poly.length];if(!A||!B)return;
     var ga={x:A.x+(B.x-A.x)*sg.a,y:A.y+(B.y-A.y)*sg.a},gb={x:A.x+(B.x-A.x)*sg.b,y:A.y+(B.y-A.y)*sg.b},gl=Math.hypot(gb.x-ga.x,gb.y-ga.y);
@@ -1830,7 +1881,7 @@ function build3D(){
     var gang=Math.atan2(gb.y-ga.y,gb.x-ga.x),gmx=(ga.x+gb.x)/2,gmy=(ga.y+gb.y)/2;
     var strip=new THREE.Mesh(new THREE.BoxGeometry(gl,.02,.03),gmat);strip.position.set(gmx,h-.03,-gmy);strip.rotation.y=gang;g.add(strip);
     var halo=new THREE.Mesh(new THREE.PlaneGeometry(gl,.3).rotateX(Math.PI/2),ghalo);halo.position.set(gmx,h-.012,-gmy);halo.rotation.y=gang;g.add(halo);
-    if(si<3){var GL=new THREE.PointLight(0xffb870,.35*gk,4);GL.position.set(gmx,h-.2,-gmy);g.add(GL)}
+    if(LB.g>0){LB.g--;pLight(g,0xffb870,.5,4,gmx,h-.2,-gmy,gk)}
   });
   (function(){
     var n=poly.length,cxm=0,cym=0;poly.forEach(function(p){cxm+=p.x;cym+=p.y});cxm/=n;cym/=n;
@@ -1849,14 +1900,138 @@ function build3D(){
       var cloth=new THREE.Mesh(geo,clothM);cloth.position.set(mx+nx*.1,h-.04-chh/2,-(my+ny*.1));cloth.rotation.y=ang;g.add(cloth);
     });
   })();
-  addTracks3D(r,g,h,gk);
+  addTracks3D(r,g,h,gk,LB);
   var bb=bbox(poly),c=clampToPoly(poly,(bb.minX+bb.maxX)/2,(bb.minY+bb.maxY)/2),ey=Math.min(1.6,h*.62);
   if(!T3.pos||T3.built!==T3.ri||!pointInPoly(poly,T3.pos.x,-T3.pos.z)){T3.pos={x:c.x,y:ey,z:-c.y};T3.yaw=0;T3.pitch=.1}
-  T3.pos.y=ey;T3.built=T3.ri;
+  T3.pos.y=ey;T3.built=T3.ri;T3.dirty=true;
 }
+/*CLEAN-BEGIN*/
+function cleanRoom(o){
+  if(!o||typeof o!=="object")return null;
+  var N=function(v,lo,hi,d){v=(typeof v==="number"||(typeof v==="string"&&v.trim()!==""))?+v:NaN;if(!isFinite(v))return d;return Math.min(hi,Math.max(lo,v))};
+  var R=function(v){return Math.round(v*1000)/1000};
+  var P=function(a,max){
+    var out=[];if(!Array.isArray(a))return out;
+    for(var i=0;i<a.length&&out.length<max;i++){
+      var p=a[i];if(!p||typeof p!=="object")continue;
+      var x=N(p.x,-500,500,NaN),y=N(p.y,-500,500,NaN);
+      if(isFinite(x)&&isFinite(y))out.push({x:R(x),y:R(y)});
+    }
+    return out;
+  };
+  if(!Array.isArray(o.poly)||o.poly.length<3||o.poly.length>120)return null;
+  var poly=P(o.poly,120);if(poly.length!==o.poly.length)return null;
+  var n=poly.length;
+  var G=function(a,max){
+    var out=[];if(!Array.isArray(a))return out;
+    for(var i=0;i<a.length&&out.length<max;i++){
+      var g=a[i];if(!g||typeof g!=="object")continue;
+      if(typeof g.e!=="number"||g.e!==Math.floor(g.e)||g.e<0||g.e>=n)continue;
+      var a1=N(g.a,0,1,0),b1=N(g.b,0,1,1);
+      if(Math.abs(b1-a1)<1e-4)continue;
+      out.push({e:g.e,a:R(Math.min(a1,b1)),b:R(Math.max(a1,b1))});
+    }
+    return out;
+  };
+  var trks=[],ta=Array.isArray(o.trks)?o.trks:[];
+  for(var i=0;i<ta.length&&trks.length<30;i++){
+    var t=ta[i];if(!t||typeof t!=="object")continue;
+    var cx=N(t.cx,-500,500,NaN),cy=N(t.cy,-500,500,NaN);
+    if(!isFinite(cx)||!isFinite(cy))continue;
+    trks.push({o:t.o==="y"?"y":"x",cx:R(cx),cy:R(cy),len:R(N(t.len,.1,50,1)),k:t.k==="r"?"r":"s",c:(t.c==="w"||(!t.c&&t.k==="r"))?"w":"b",ll:+t.ll===.3?.3:.6});
+  }
+  var ch=(o.chand&&typeof o.chand==="object")?o.chand:{};
+  return{v:1,n:String(o.n==null?"":o.n).slice(0,60),h:R(N(o.h,1.8,6,2.6)),color:/^#[0-9a-fA-F]{6}$/.test(o.color)?o.color:"#ffffff",mat:String(o.mat==null?"":o.mat).slice(0,40),gain:Math.round(N(o.gain,0,100,40)),poly:poly,lights:P(o.lights,200),chand:{on:!!ch.on,pts:P(ch.pts,30)},gl:G(o.gl,200),cw:G(o.cw,200),trks:trks};
+}
+/*CLEAN-END*/
+
+// ---- 3D бөлісу: бөлменің 3D моделін сілтеме ретінде жіберу ----
+var SH={url:"",busy:false,last:null};
+function shSheet(state,msg,url){
+  var el=$("shSheet");el.hidden=false;SH.url=url||"";
+  $("shT").textContent=state==="ok"?"Сілтеме дайын":state==="busy"?"Сілтеме жасалуда…":"Сілтеме жасалмады";
+  $("shM").textContent=msg||"";
+  $("shU").hidden=state!=="ok";$("shU").value=url||"";
+  Array.prototype.forEach.call(el.querySelectorAll("[data-sh]"),function(b){
+    var k=b.getAttribute("data-sh");
+    b.hidden=(k!=="close"&&state!=="ok")||(k==="share"&&!navigator.share);
+  });
+}
+function openExt(u){
+  try{var C=window.Capacitor;if(C&&C.Plugins&&C.Plugins.Browser){C.Plugins.Browser.open({url:u});return}}catch(e){}
+  window.open(u,"_blank");
+}
+function shCopy(t){
+  function fb(){var i=$("shU");i.hidden=false;i.select();try{document.execCommand("copy")}catch(e){}}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(fb);else fb();
+  $("shM").textContent="Көшірілді ✓";
+}
+function shareRoom(){
+  if(SH.busy)return;
+  var api=((window.TOBE_CFG&&window.TOBE_CFG.api)||"").replace(/\/+$/,""),key="";
+  try{key=localStorage.getItem("tobe_lic")||""}catch(e){}
+  var r=S.rooms[T3.ri];if(!r)return;
+  if(!api){shSheet("err","Бөлісу үшін лицензия серверінің мекенжайы (api) қосымшада көрсетілуі керек.");return}
+  if(!key){shSheet("err","Лицензия кілті табылмады.");return}
+  var body=cleanRoom({n:r.n,h:r.h,color:r.color,mat:(S.cat[r.m]||S.cat[0]||{}).n,gain:S.gain,poly:r.poly,lights:r.lights,chand:r.chand,gl:r.gl,cw:r.cw,trks:r.trks});
+  if(!body){shSheet("err","Бөлменің пішіні дұрыс емес.");return}
+  var txt=JSON.stringify(body);
+  if(SH.last&&SH.last.t===txt){shSheet("ok","Бөлме өзгерген жоқ, сілтеме сол күйінде.",SH.last.u);return}
+  SH.busy=true;shSheet("busy","Серверге жіберіліп жатыр…");
+  var ctl=window.AbortController?new AbortController():null,tm=setTimeout(function(){if(ctl)ctl.abort()},15000);
+  fetch(api+"/share",{method:"POST",headers:{"content-type":"application/json","x-license":key},body:txt,signal:ctl?ctl.signal:undefined})
+    .then(function(res){return res.json().then(function(j){return{s:res.status,j:j}})})
+    .then(function(x){
+      if(x.s===200&&x.j&&x.j.id){var u=api+"/?v="+x.j.id;SH.last={t:txt,u:u};shSheet("ok","Сілтемені клиентке жіберіңіз: ол браузерде бөлменің 3D моделін көреді. Баға мен смета көрінбейді. Сілтеме 180 күн жұмыс істейді.",u)}
+      else if(x.s===401)shSheet("err","Лицензия жарамсыз немесе мерзімі аяқталған. Жазылымды ұзартыңыз.");
+      else if(x.s===413)shSheet("err","Бөлме деректері тым үлкен.");
+      else shSheet("err","Сервер қатесі ("+x.s+"). Кейінірек қайталаңыз.");
+    },function(){shSheet("err","Интернет жоқ немесе сервер жауап бермеді.")})
+    .then(function(){clearTimeout(tm);SH.busy=false});
+}
+$("v3share").addEventListener("click",shareRoom);
+$("shSheet").addEventListener("click",function(e){
+  if(e.target===this){this.hidden=true;return}
+  var b=e.target.closest&&e.target.closest("[data-sh]");if(!b)return;
+  var k=b.getAttribute("data-sh"),u=SH.url;
+  if(k==="close")this.hidden=true;
+  else if(k==="copy"&&u)shCopy(u);
+  else if(k==="share"&&u&&navigator.share)navigator.share({title:"Төбе · 3D модель",text:"Бөлменің 3D моделі",url:u}).catch(function(){});
+  else if(k==="wa"&&u)openExt("https://wa.me/?text="+encodeURIComponent("Бөлменің 3D моделі: "+u));
+  else if(k==="tg"&&u)openExt("https://t.me/share/url?url="+encodeURIComponent(u)+"&text="+encodeURIComponent("Бөлменің 3D моделі"));
+});
+
+// ---- 3D көру режимі: сілтемені ашқан адам тек бөлмені көреді ----
+function viewerMsg(t,err){
+  document.documentElement.classList.toggle("verr",!!err);
+  var el=$("v3msg");
+  if(!el){el=document.createElement("div");el.id="v3msg";el.className="v3err";$("v3").insertBefore(el,$("v3").firstChild)}
+  el.textContent=t||"";el.hidden=!t;
+}
+function bootViewer(){
+  document.title="3D модель · Төбе";
+  $("pgCalc").hidden=true;$("pgCalcB").hidden=true;$("pgEd").hidden=false;
+  document.body.classList.add("edfull");document.querySelector("main").classList.add("wide");
+  E.vw="3d";$("ed2d").hidden=true;$("ed3d").hidden=false;
+  S={cat:[{n:"Мат",p:0}],ptypes:[],ex:[],gr:D.gr,gain:40,rooms:[]};
+  $("v3room").innerHTML="<option>…</option>";$("v3room").disabled=true;
+  $("v3gain").value=S.gain;
+  viewerMsg("Жүктелуде…");
+  fetch(location.origin+"/share/"+VIEW,{cache:"no-store"})
+    .then(function(res){return res.json().then(function(j){return{s:res.status,j:j}})})
+    .then(function(x){
+      var c=x.s===200?cleanRoom(x.j):null;
+      if(!c){viewerMsg(x.s===404?"Сілтеме табылмады немесе мерзімі өткен.":"Бөлмені ашу мүмкін болмады.",true);return}
+      S.cat=[{n:c.mat||"Мат",p:0}];S.gain=c.gain;
+      c.m=0;c.view="3d";
+      S.rooms=[c];T3.ri=0;$("v3gain").value=S.gain;
+      viewerMsg("");fillV3();
+    },function(){viewerMsg("Интернет жоқ немесе сервер жауап бермеді.",true)});
+}
+
 $("v3room").addEventListener("change",function(){T3.ri=+this.value;E.i=T3.ri;E.sel=null;E.pick=null;E.delAsk=false;drawEditor();build3D()});
 
-drawCat();drawEx();drawPTypes();drawRooms();
+if(VIEW)bootViewer();else{drawCat();drawEx();drawPTypes();drawRooms()}
 </script>
 </body>
 </html>
