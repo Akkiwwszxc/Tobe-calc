@@ -161,7 +161,6 @@ body.edfull #pgEd{position:fixed;inset:0;z-index:40;overflow:hidden;background:#
 .cad-sp{flex:1}
 .cb{width:46px;height:46px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;background:#3a3c40;border:0;color:#eceff3}
 .cb svg{width:24px;height:24px;pointer-events:none}
-.cb.save{width:56px;border-radius:23px;background:#ffab00;color:#1b1c1e}
 .cb-wrap{position:relative}
 #cadMenu{position:absolute;right:0;top:52px;z-index:60;min-width:230px;background:#2a2b2f;border:1px solid var(--line);border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:2px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 #cadMenu button{text-align:left;border:0;background:transparent;padding:11px 12px;border-radius:8px;color:#eceff3}
@@ -259,7 +258,7 @@ var LIC = {
   // Мысалы: "Kaspi: +7 7XX XXX XX XX · WhatsApp: +7 7XX XXX XX XX"
   // Лицензия серверінің мекенжайы (Cloudflare Worker орнатылған соң қойыңыз), мысалы:
   // "https://tobe-license.СІЗДІҢ-ПОЧТА.workers.dev". Бос болса, тек қолмен кілт енгізіледі.
-  api: "",
+  api: "https://tobe-license.2ez1akki.workers.dev",
   contact: "",
   // Мысалы: "Айына 3 000 ₸"
   price: ""
@@ -346,11 +345,17 @@ st.textContent =
   "#licBox summary{cursor:pointer;color:var(--mute);font-size:14px}" +
   "#licBox .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}" +
   "#licBox .msg{min-height:20px;margin:8px 0 0;font-size:14px;font-weight:600}" +
-  "#licBox ol{margin:8px 0 8px 18px;padding:0;color:var(--mute);font-size:14px}";
+  "#licBox ol{margin:8px 0 8px 18px;padding:0;color:var(--mute);font-size:14px}" +
+  "#licPay h3{margin:4px 0 6px;font-size:17px}" +
+  "#licPay .kr{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}" +
+  "#licPay .kl{font-size:13px;color:var(--mute)}" +
+  "#licPay .kv{font:700 19px/1.25 ui-monospace,Menlo,Consolas,monospace;letter-spacing:1px;word-break:break-all}" +
+  "#licPay .kst{font-weight:600;color:var(--acc);margin:10px 0 2px}" +
+  "#licPay .row button{flex:1}";
 document.head.appendChild(st);
 
-var renewing = false, box = null, codeEl, msgEl, taEl, closeEl, plansEl, manualEl, introEl;
-var devCode = "", polling = null, polled = false, claiming = false, planData = null;
+var renewing = false, box = null, codeEl, msgEl, taEl, closeEl, plansEl, manualEl, introEl, payEl;
+var devCode = "", polling = null, polled = false, claiming = false, planData = null, rejected = false;
 
 async function getCode() {
   if (devCode) return devCode;
@@ -432,6 +437,7 @@ async function applyKey(k) {
 function finish() {
   stopPoll();
   try { localStorage.removeItem(LS_ORD); } catch (e) {}
+  hideKaspi();
   renewing = false;
   setMsg("Белсендірілді ✓", true);
   check();
@@ -446,6 +452,7 @@ async function claimOrder() {
   try {
     var c = await api("/claim?order=" + ord.id + "&device=" + code);
     if (c.status === "paid") return c.key;
+    if (c.status === "rejected") rejected = true;
     if (c._http === 404) { try { localStorage.removeItem(LS_ORD); } catch (e) {} }
   } catch (e) {}
   return "";
@@ -457,20 +464,28 @@ async function pollOnce() {
   try {
     var k = await claimOrder();
     if (k) { var r = await applyKey(k); if (r.ok) finish(); }
+    else if (rejected) {
+      rejected = false; stopPoll();
+      try { localStorage.removeItem(LS_ORD); } catch (e) {}
+      hideKaspi();
+      setMsg("Төлем расталмады. Сатушымен байланысыңыз немесе қайта көріңіз.", false);
+    }
   } catch (e) {}
   polled = false;
 }
-function startPoll() {
+// manual=true: Kaspi аударымы, сатушы растағанша ұзағырақ күтеміз
+function startPoll(manual) {
   stopPoll();
-  var n = 0;
+  var n = 0, max = manual ? 720 : 400, ms = manual ? 5000 : 3000; // 60 мин / ~20 мин
   polling = setInterval(function () {
-    if (++n > 400) { // ~20 минут
+    if (++n > max) {
       stopPoll();
-      setMsg("Төлем расталмады. Төлесеңіз, қосымшаны қайта ашыңыз: кілт автоматты түседі.", false);
+      setMsg(manual ? "Растау әлі келген жоқ. Төлем жасасаңыз, қосымшаны кейінірек қайта ашыңыз: кілт автоматты түседі."
+                    : "Төлем расталмады. Төлесеңіз, қосымшаны қайта ашыңыз: кілт автоматты түседі.", false);
       return;
     }
     pollOnce();
-  }, 3000);
+  }, ms);
 }
 function stopPoll() { if (polling) { clearInterval(polling); polling = null; } }
 
@@ -490,6 +505,67 @@ async function autoClaim() {
   claiming = false;
 }
 
+function fmtSum(a) { return Number(a).toLocaleString("ru-RU") + " ₸"; }
+function kRow(lab, val, copy) {
+  var d = document.createElement("div"); d.className = "kr";
+  var l = document.createElement("div");
+  var a = document.createElement("div"); a.className = "kl"; a.textContent = lab;
+  var b = document.createElement("div"); b.className = "kv"; b.textContent = val;
+  l.appendChild(a); l.appendChild(b); d.appendChild(l);
+  if (copy) {
+    var c = document.createElement("button"); c.type = "button"; c.textContent = "Көшіру";
+    c.addEventListener("click", function () {
+      copyText(copy); c.textContent = "Көшірілді ✓";
+      setTimeout(function () { c.textContent = "Көшіру"; }, 1500);
+    });
+    d.appendChild(c);
+  }
+  return d;
+}
+function kNote(t) { var p = document.createElement("p"); p.textContent = t; return p; }
+function showKaspi(k) {
+  payEl.textContent = "";
+  var h = document.createElement("h3"); h.textContent = "Kaspi арқылы төлеу";
+  payEl.appendChild(h);
+  payEl.appendChild(kRow("Kaspi нөмірі", k.phone, k.phone));
+  if (k.name) payEl.appendChild(kRow("Алушы", k.name, ""));
+  payEl.appendChild(kRow("Сома (дәл осы сома)", fmtSum(k.amount), String(k.amount)));
+  payEl.appendChild(kRow("Түсініктемеге жазыңыз", k.code, k.code));
+  payEl.appendChild(kNote("Kaspi.kz қосымшасын ашыңыз → «Аударымдар» → «Телефон нөміріне». Нөмірді, соманы көрсетіп, түсініктемеге кодты жазыңыз."));
+  payEl.appendChild(kNote("Төлегеннен кейін сатушы растайды (әдетте бірнеше минут). Кілт осында автоматты түседі, қосымшаны жаппай күтуге немесе кейін қайта ашуға болады."));
+  var st = document.createElement("div"); st.className = "kst"; st.textContent = "Растауды күтудеміз…";
+  payEl.appendChild(st);
+  var row = document.createElement("div"); row.className = "row"; row.style.marginTop = "8px";
+  var chk = document.createElement("button"); chk.type = "button"; chk.textContent = "Төлеп қойдым, тексеру";
+  chk.addEventListener("click", function () {
+    st.textContent = "Тексеріліп жатыр…";
+    pollOnce().then(function () { if (!payEl.hidden) st.textContent = "Төлем әлі расталған жоқ. Сатушы растағанша күтіңіз."; });
+  });
+  var cn = document.createElement("button"); cn.type = "button"; cn.textContent = "Бас тарту";
+  cn.addEventListener("click", function () {
+    stopPoll(); try { localStorage.removeItem(LS_ORD); } catch (e) {}
+    hideKaspi(); setMsg("", true);
+  });
+  row.appendChild(chk); row.appendChild(cn); payEl.appendChild(row);
+  payEl.hidden = false; plansEl.hidden = true; manualEl.hidden = true; introEl.hidden = true;
+}
+function hideKaspi() {
+  if (!payEl) return;
+  payEl.hidden = true; payEl.textContent = "";
+  plansEl.hidden = !LIC.api; manualEl.hidden = false; introEl.hidden = false;
+}
+// Қосымша қайта ашылғанда: күтіп тұрған Kaspi тапсырысының картасын қайта көрсету
+function resumeKaspi() {
+  var o = getOrd();
+  if (!o || !o.kaspi) return;
+  if (Date.now() - (o.t || 0) > 3 * 864e5) { try { localStorage.removeItem(LS_ORD); } catch (e) {} hideKaspi(); return; }
+  getCode().then(function (c) {
+    if (o.device !== c) return;
+    if (payEl.hidden) showKaspi(o.kaspi);
+    if (!polling) startPoll(true);
+  });
+}
+
 async function pay(id) {
   setMsg("Төлем беті ашылуда…", true);
   try {
@@ -499,7 +575,10 @@ async function pay(id) {
       setMsg(r.error === "provider_not_configured" ? "Төлем әзірге қосылмаған" : "Тапсырыс жасалмады", false);
       return;
     }
-    try { localStorage.setItem(LS_ORD, JSON.stringify({ id: r.order, device: code })); } catch (e) {}
+    var ord = { id: r.order, device: code, t: Date.now() };
+    if (r.kaspi) ord.kaspi = r.kaspi;
+    try { localStorage.setItem(LS_ORD, JSON.stringify(ord)); } catch (e) {}
+    if (r.kaspi) { setMsg("", true); showKaspi(r.kaspi); startPoll(true); return; }
     openUrl(r.payUrl);
     setMsg("Төлемді аяқтап, осында қайтыңыз: кілт автоматты түседі…", true);
     startPoll();
@@ -515,6 +594,11 @@ async function loadPlans() {
   try {
     var d = planData || (planData = await api("/plans"));
     if (!d.plans || !d.plans.length) throw new Error("empty");
+    if (d.mode === "kaspi") {
+      var kn = document.createElement("p"); kn.style.cssText = "text-align:center;margin:4px 0 8px";
+      kn.textContent = "Төлем Kaspi аударымымен. Төлегеннен кейін сатушы растайды, кілт автоматты түседі.";
+      plansEl.appendChild(kn);
+    }
     if (d.mode === "test") {
       var tb = document.createElement("div"); tb.className = "test";
       tb.textContent = "ТЕСТ РЕЖИМІ: нақты төлем жоқ, төлем беті тек тексеру үшін.";
@@ -546,6 +630,7 @@ function build() {
     '<h2>Жазылым қажет</h2>' +
     '<p id="licIntro">Қосымшаны пайдалану үшін жазылымды таңдаңыз.</p>' +
     '<div id="licPlans"></div>' +
+    '<div id="licPay" hidden></div>' +
     '<div class="msg" id="licMsg"></div>' +
     '<details id="licManual"><summary>Кілтім бар (қолмен белсендіру)</summary>' +
     '<ol><li>Төмендегі құрылғы кодын сатушыға жіберіңіз.</li><li>Алған кілтті өріске қойып, «Белсендіру» басыңыз.</li></ol>' +
@@ -562,6 +647,7 @@ function build() {
   taEl = box.querySelector("#licKey");
   closeEl = box.querySelector("#licClose");
   plansEl = box.querySelector("#licPlans");
+  payEl = box.querySelector("#licPay");
   manualEl = box.querySelector("#licManual");
   introEl = box.querySelector("#licIntro");
   var ct = [LIC.price, LIC.contact].filter(Boolean).join(" · ");
@@ -582,6 +668,7 @@ function show(msg, closable) {
   if (msg || first) setMsg(msg || "", false);
   getCode().then(function (c) { codeEl.textContent = fmtCode(c); });
   if (first || !plansEl.children.length) loadPlans();
+  resumeKaspi();
 }
 function hide() { renewing = false; stopPoll(); if (box) box.style.display = "none"; }
 
@@ -691,7 +778,7 @@ setInterval(check, 5 * 60 * 1000);
 </div>
 </div>
 <div id="pgEd" hidden>
-<div class="cad-top"><div class="cad-row"><button type="button" class="cb" data-back="1" aria-label="Артқа"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><span class="cad-sp"></span><button type="button" class="cb" data-sheet="rooms" aria-label="Бөлмелер"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button><button type="button" class="cb" data-sheet="panel" aria-label="Параметрлер"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button><div class="cb-wrap"><button type="button" class="cb" data-menu="1" aria-label="Қосымша"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/></svg></button><div id="cadMenu" hidden><button type="button" data-radd="1">＋ Бөлме қосу</button><button type="button" data-rmask="1">🗑 Бөлмені өшіру</button><button type="button" data-clean="1">Артық нүктелерді тазалау</button></div></div><button type="button" class="cb save" data-save="1" aria-label="Сақтау"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l4 4v14H5z"/><path d="M8 3v6h8V3"/><rect x="8" y="14" width="8" height="7"/></svg></button></div><div class="seg cad-seg" id="vtabs"><button type="button" data-vw="an">Өлшем</button><button type="button" data-vw="2d" class="on">Сызба</button><button type="button" data-vw="3d">3D</button></div></div><div id="rmdel"></div>
+<div class="cad-top"><div class="cad-row"><button type="button" class="cb" data-back="1" aria-label="Артқа"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><span class="cad-sp"></span><button type="button" class="cb" data-sheet="rooms" aria-label="Бөлмелер"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button><button type="button" class="cb" data-sheet="panel" aria-label="Параметрлер"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button><div class="cb-wrap"><button type="button" class="cb" data-menu="1" aria-label="Қосымша"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/></svg></button><div id="cadMenu" hidden><button type="button" data-radd="1">＋ Бөлме қосу</button><button type="button" data-rmask="1">🗑 Бөлмені өшіру</button><button type="button" data-clean="1">Артық нүктелерді тазалау</button></div></div></div><div class="seg cad-seg" id="vtabs"><button type="button" data-vw="an">Өлшем</button><button type="button" data-vw="2d" class="on">Сызба</button><button type="button" data-vw="3d">3D</button></div></div><div id="rmdel"></div>
 <div id="ed2d"></div>
 <div id="ed3d" hidden>
 <div class="v3" id="v3"><div class="dpad"><span></span><button type="button" data-k="w" aria-label="Алға"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button><span></span><button type="button" data-k="a" aria-label="Солға"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><button type="button" data-k="s" aria-label="Артқа"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><button type="button" data-k="d" aria-label="Оңға"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></div></div>
@@ -1515,7 +1602,6 @@ document.addEventListener("click",function(e){
   var cmn=$("cadMenu"),tgm=e.target.getAttribute&&e.target.getAttribute("data-menu");
   if(cmn){if(tgm){cmn.hidden=!cmn.hidden;return}if(!cmn.hidden)cmn.hidden=true}
   if(e.target.getAttribute&&e.target.getAttribute("data-sheet")!==null){var shv=e.target.getAttribute("data-sheet");E.sheet=(shv&&E.sheet!==shv)||(shv==="panel"&&e.target.getAttribute("data-focus"))?shv:null;E.focus=e.target.getAttribute("data-focus")||null;if(E.vw!=="2d")setView("2d");else drawEditor();return}
-  if(e.target.getAttribute&&e.target.getAttribute("data-save")){save();E.toast="Сақталды ✓";drawEditor();return}
   if(e.target.getAttribute&&e.target.getAttribute("data-cut")!==null){var rcu=S.rooms[E.i];if(E.sel!=null&&rcu.poly.length>3)delVertex(E.i,E.sel);else{E.toast=rcu.poly.length<=3?"Үш нүктеден кем болмайды":"Алдымен бұрышты (дөңгелекті) басып таңдаңыз";drawEditor()}return}
   if(e.target.getAttribute&&e.target.getAttribute("data-clean")){cleanVerts(E.i);return}
   var rsl=e.target.closest&&e.target.closest("[data-rsel]");
@@ -1986,7 +2072,11 @@ function shareRoom(){
       else if(x.s===401)shSheet("err","Лицензия жарамсыз немесе мерзімі аяқталған. Жазылымды ұзартыңыз.");
       else if(x.s===413)shSheet("err","Бөлме деректері тым үлкен.");
       else shSheet("err","Сервер қатесі ("+x.s+"). Кейінірек қайталаңыз.");
-    },function(){shSheet("err","Интернет жоқ немесе сервер жауап бермеді.")})
+    },function(e){
+      var h=api.replace(/^https?:\/\//,"");
+      shSheet("err",(e&&e.name==="AbortError")?"Сервер 15 секундта жауап бермеді ("+h+"). Қайталап көріңіз немесе басқа желіге (Wi-Fi / мобильді интернет) ауысыңыз.":
+        (typeof navigator!=="undefined"&&navigator.onLine===false)?"Құрылғыда интернет қосылмаған.":
+        "Серверге қосылу мүмкін болмады ("+h+"). Интернетті тексеріңіз немесе басқа желіге (Wi-Fi / мобильді интернет) ауысып көріңіз.")})
     .then(function(){clearTimeout(tm);SH.busy=false});
 }
 $("v3share").addEventListener("click",shareRoom);
