@@ -411,6 +411,18 @@ async function adminAct(req, env, action) {
 /* ---------- Telegram: хабарлама, чек, растау батырмалары ----------
    Құпия: TELEGRAM_BOT_TOKEN (Cloudflare secret). Чат id /admin → «Telegram қосу» арқылы KV-ға түседі
    (немесе env.TELEGRAM_CHAT_ID). Webhook қорғанысы: secret_token = sha256(token) туындысы. */
+// Cloudflare-де атау қолмен жазылғанда кірілше-латын ұқсас әріптер (Т, Е, А…) немесе бос орын араласуы мүмкін: түзетіп іздейміз
+const LOOK = { "А": "A", "В": "B", "Е": "E", "К": "K", "М": "M", "О": "O", "Р": "P", "С": "C", "Т": "T", "Н": "H", "Х": "X", "І": "I", "Ү": "Y" };
+function normName(k) { return String(k).trim().toUpperCase().replace(/[А-ЯІҮ]/g, (c) => LOOK[c] || c).replace(/[\s\-.]+/g, "_"); }
+function fixEnv(env) {
+  if (env.TELEGRAM_BOT_TOKEN) return env;
+  try {
+    for (const k of Object.keys(env)) {
+      if (normName(k) === "TELEGRAM_BOT_TOKEN" && typeof env[k] === "string" && env[k].trim()) return { ...env, TELEGRAM_BOT_TOKEN: env[k].trim() };
+    }
+  } catch (e) { /* env тізімделмесе — ештеңе істемейміз */ }
+  return env;
+}
 async function tg(env, method, body, form) {
   if (!env.TELEGRAM_BOT_TOKEN) return null;
   const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 8000);
@@ -498,7 +510,7 @@ async function tgHook(req, env) {
 // /admin: «Telegram қосу» — чат id табады, webhook орнатады, сынақ хабарлама жібереді
 async function tgSetup(req, env, u) {
   if (!(await adminOk(env, req, "tgsetup", "-"))) return J({ error: "auth" }, 401);
-  if (!env.TELEGRAM_BOT_TOKEN) return J({ error: "no_token" });
+  if (!env.TELEGRAM_BOT_TOKEN) return J({ error: "no_token", seen: Object.keys(env).filter((k) => !/^(ORDERS|ASSETS)$/.test(k)).map((k) => k.replace(/[^\x20-\x7e]/g, (c) => "<U+" + c.codePointAt(0).toString(16) + ">")) });
   const me = await tg(env, "getMe", {});
   if (!me || !me.ok) return J({ error: "bad_token" });
   let chat = String(env.TELEGRAM_CHAT_ID || ""), who = "";
@@ -649,7 +661,7 @@ async function loadKeys(){if(!$("priv").value.trim())return;try{var j=await call
 $("tgb").onclick=async function(){var m=$("tgm");m.className="note";m.textContent="";if(!$("priv").value.trim()){m.className="bad";m.textContent="Алдымен жеке кілтті енгізіңіз";return}
 try{var j=await call("/admin/tg-setup","tgsetup","-",{});
 if(j.ok){m.className="ok";m.textContent="Қосылды ✓ @"+j.bot+(j.who?" · "+j.who:"")+". Ботқа сынақ хабарлама келді."}
-else{m.className="bad";m.textContent=j.error==="no_token"?"Cloudflare-де TELEGRAM_BOT_TOKEN secret жоқ":j.error==="bad_token"?"Токен қате":j.error==="no_chat"?"Алдымен @"+j.bot+" ботын ашып, Start басыңыз, қайта басыңыз":j.error==="webhook_fail"?"Webhook орнатылмады":j._s===401?"Жеке кілт сәйкес емес":"Қате ("+j._s+")"}}catch(e){m.className="bad";m.textContent="Желі қатесі"}};
+else{m.className="bad";m.textContent=j.error==="no_token"?"Cloudflare-де TELEGRAM_BOT_TOKEN secret жоқ. Воркер көретін атаулар: "+(j.seen||[]).join(", "):j.error==="bad_token"?"Токен қате":j.error==="no_chat"?"Алдымен @"+j.bot+" ботын ашып, Start басыңыз, қайта басыңыз":j.error==="webhook_fail"?"Webhook орнатылмады":j._s===401?"Жеке кілт сәйкес емес":"Қате ("+j._s+")"}}catch(e){m.className="bad";m.textContent="Желі қатесі"}};
 $("rvb").onclick=function(){var d=$("rvd").value.toUpperCase().replace(/[^0-9A-Z]/g,"");if(d.length!==8){$("rerr").textContent="Құрылғы коды 8 таңба болуы керек";return}
 if(!$("priv").value.trim()){$("rerr").textContent="Алдымен жеке кілтті енгізіңіз";return}$("rvd").value="";revDev("revoke",d)};
 $("go").onclick=async function(){var e=$("ierr");e.textContent="";$("res").hidden=true;
@@ -668,6 +680,7 @@ setInterval(function(){if(!document.hidden)load()},60000);if($("priv").value.tri
 
 export default {
   async fetch(req, env) {
+    env = fixEnv(env);
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
     const u = new URL(req.url), p = u.pathname;
     try {
