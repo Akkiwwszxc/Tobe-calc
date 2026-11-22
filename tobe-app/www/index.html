@@ -355,7 +355,7 @@ st.textContent =
 document.head.appendChild(st);
 
 var renewing = false, box = null, codeEl, msgEl, taEl, closeEl, plansEl, manualEl, introEl, payEl;
-var devCode = "", polling = null, polled = false, claiming = false, planData = null, rejected = false;
+var devCode = "", polling = null, polled = false, claiming = false, planData = null, planAt = 0, rejected = false;
 
 async function getCode() {
   if (devCode) return devCode;
@@ -593,7 +593,8 @@ async function loadPlans() {
   if (!LIC.api) { plansEl.hidden = true; manualEl.open = true; manualEl.querySelector("summary").hidden = true; introEl.textContent = "Қосымшаны пайдалану үшін лицензия кілтін енгізіңіз."; return; }
   plansEl.hidden = false;
   try {
-    var d = planData || (planData = await api("/plans"));
+    if (!planData || Date.now() - planAt > 60000) { planData = await api("/plans?device=" + encodeURIComponent(await getCode())); planAt = Date.now(); }
+    var d = planData;
     if (!d.plans || !d.plans.length) throw new Error("empty");
     if (d.mode === "kaspi") {
       var kn = document.createElement("p"); kn.style.cssText = "text-align:center;margin:4px 0 8px";
@@ -605,11 +606,20 @@ async function loadPlans() {
       tb.textContent = "ТЕСТ РЕЖИМІ: нақты төлем жоқ, төлем беті тек тексеру үшін.";
       plansEl.appendChild(tb);
     }
+    if (d.renew && d.renew.pct) {
+      var rn = document.createElement("p"); rn.style.cssText = "text-align:center;margin:4px 0 8px;color:var(--acc);font-weight:700";
+      rn.textContent = "Жазылымды жалғау үшін жеңілдік −" + d.renew.pct + "%";
+      plansEl.appendChild(rn);
+    }
     d.plans.forEach(function (p) {
       var b = document.createElement("button");
       b.type = "button"; b.className = "plan";
       var a = document.createElement("span"); a.textContent = p.title;
-      var c = document.createElement("span"); c.textContent = Number(p.price).toLocaleString("ru-RU") + " ₸";
+      var c = document.createElement("span");
+      if (p.full && p.full > p.price) {
+        var old = document.createElement("s"); old.style.cssText = "opacity:.55;font-weight:400;margin-right:8px"; old.textContent = Number(p.full).toLocaleString("ru-RU");
+        c.appendChild(old); c.appendChild(document.createTextNode(Number(p.price).toLocaleString("ru-RU") + " ₸"));
+      } else c.textContent = Number(p.price).toLocaleString("ru-RU") + " ₸";
       b.appendChild(a); b.appendChild(c);
       b.addEventListener("click", function () { pay(p.id); });
       plansEl.appendChild(b);
@@ -668,7 +678,7 @@ function show(msg, closable) {
   closeEl.hidden = !closable;
   if (msg || first) setMsg(msg || "", false);
   getCode().then(function (c) { codeEl.textContent = fmtCode(c); });
-  if (first || !plansEl.children.length) loadPlans();
+  if (first || !plansEl.children.length || Date.now() - planAt > 60000) loadPlans();
   resumeKaspi();
 }
 function hide() { renewing = false; stopPoll(); if (box) box.style.display = "none"; }
