@@ -267,7 +267,7 @@ var LIC = {
 // Негізгі скрипт 3D бөлісу үшін сервер мекенжайын осыдан алады
 if (typeof window !== "undefined") window.TOBE_CFG = { api: LIC.api };
 
-var LS_KEY = "tobe_lic", LS_SEEN = "tobe_ls", LS_DID = "tobe_did";
+var LS_KEY = "tobe_lic", LS_SEEN = "tobe_ls", LS_DID = "tobe_did", LS_RV = "tobe_rv";
 var G = (typeof globalThis !== "undefined") ? globalThis : window;
 
 function b64uToBytes(s) {
@@ -431,6 +431,7 @@ async function applyKey(k) {
   if (!r.ok) return r;
   try { localStorage.setItem(LS_KEY, k); }
   catch (e) { return { ok: false, err: "Кілтті сақтау мүмкін болмады" }; }
+  rvLast = 0; // жаңа кілт: қайтарып алу күйін қайта сұраймыз
   return r;
 }
 
@@ -702,14 +703,52 @@ function showInfo(r) {
   el.appendChild(t); el.appendChild(b);
 }
 
+/* ---------- кілтті қайтарып алу ----------
+   Желі бар кезде сервер құрылғы күйін айтады. Қайтарып алынса — құлып.
+   RV_GRACE-тен ұзақ уақыт сәтті тексеру болмаса — интернетке қосылғанша құлып. */
+var RV_GRACE = 3 * 864e5, rvLast = 0, rvBusy = false;
+function rvGet() {
+  try { var o = JSON.parse(localStorage.getItem(LS_RV) || "null"); if (o && typeof o.t === "number") return o; } catch (e) {}
+  return null;
+}
+function rvPut(o) { try { localStorage.setItem(LS_RV, JSON.stringify(o)); } catch (e) {} }
+async function rvFetch(code) {
+  rvBusy = true; rvLast = Date.now();
+  try {
+    var j = await api("/status?device=" + encodeURIComponent(code));
+    if (j._http === 200 && typeof j.revoked === "boolean") rvPut({ t: effectiveNow(), rv: j.revoked ? 1 : 0 });
+  } catch (e) { /* желі жоқ: күй өзгермейді */ }
+  rvBusy = false;
+}
+// "ok" | "revoked" | "stale"
+async function revStatus(code) {
+  if (!LIC.api) return "ok";
+  var st = rvGet();
+  if (!st) { st = { t: effectiveNow(), rv: 0 }; rvPut(st); } // бұрыннан бар қолданушы бірден құлыпталмасын
+  var bad = st.rv || effectiveNow() - st.t > RV_GRACE;
+  if (!rvBusy && Date.now() - rvLast >= (bad ? 30000 : 10 * 60 * 1000)) {
+    if (bad) await rvFetch(code); // құлыптаулы: нәтижені күтеміз
+    else rvFetch(code).then(function () { var n = rvGet(); if (n && n.rv) check(); }); // ашық: қосымшаны кідіртпейміз
+    st = rvGet() || st;
+  }
+  if (st.rv) return "revoked";
+  if (effectiveNow() - st.t > RV_GRACE) return "stale";
+  return "ok";
+}
+
 async function check() {
   var code = await getCode(), key = "";
   try { key = localStorage.getItem(LS_KEY) || ""; } catch (e) {}
   var r = key ? await verifyKey(key, code, effectiveNow()) : { ok: false };
-  if (r.ok) {
+  var rs = r.ok ? await revStatus(code) : "ok";
+  if (r.ok && rs === "ok") {
     html.classList.remove("lic-lock");
     if (!renewing) hide();
     showInfo(r);
+  } else if (r.ok) {
+    html.classList.add("lic-lock");
+    show(rs === "revoked" ? "Кілт қайтарып алынды. Сатушымен байланысыңыз." : "Лицензияны тексеру үшін интернетке қосылыңыз.", false);
+    autoClaim();
   } else {
     html.classList.add("lic-lock");
     show(key ? r.err : "", false);
