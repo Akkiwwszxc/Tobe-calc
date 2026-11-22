@@ -15,6 +15,7 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       LICENSE_PRIVATE_JWK: ${{ secrets.LICENSE_PRIVATE_JWK }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -156,6 +157,16 @@ jobs:
         if: steps.s.outputs.have == '1'
         working-directory: ${{ steps.p.outputs.dir }}
         run: printf '%s' "$LICENSE_PRIVATE_JWK" | npx --yes wrangler@4 secret put LICENSE_PRIVATE_JWK
+
+      - name: Set Telegram bot token secret
+        if: steps.s.outputs.have == '1'
+        working-directory: ${{ steps.p.outputs.dir }}
+        run: |
+          if [ -n "$TELEGRAM_BOT_TOKEN" ]; then
+            printf '%s' "$TELEGRAM_BOT_TOKEN" | npx --yes wrangler@4 secret put TELEGRAM_BOT_TOKEN
+          else
+            echo "::notice::GitHub Secret TELEGRAM_BOT_TOKEN жоқ: Telegram хабарламалары қосылмайды (міндетті емес)."
+          fi
 
       - name: Smoke test and show address
         if: steps.s.outputs.have == '1'
