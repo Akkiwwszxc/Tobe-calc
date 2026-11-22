@@ -524,6 +524,43 @@ function kRow(lab, val, copy) {
   return d;
 }
 function kNote(t) { var p = document.createElement("p"); p.textContent = t; return p; }
+/* ---------- чек жіберу (Telegram арқылы сатушыға) ---------- */
+function prepReceipt(file) {
+  return new Promise(function (resolve) {
+    var raw = function () { resolve(file); };
+    if (!/^image\//.test(file.type)) return raw();
+    var img = new Image(), u = URL.createObjectURL(file);
+    img.onload = function () {
+      try {
+        var m = 1600, sc = Math.min(1, m / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement("canvas"); c.width = Math.max(1, Math.round(img.naturalWidth * sc)); c.height = Math.max(1, Math.round(img.naturalHeight * sc));
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(function (b) { URL.revokeObjectURL(u); resolve(b || file); }, "image/jpeg", 0.82);
+      } catch (e) { URL.revokeObjectURL(u); raw(); }
+    };
+    img.onerror = function () { URL.revokeObjectURL(u); raw(); };
+    img.src = u;
+  });
+}
+function sendReceipt(file, st) {
+  var o = getOrd();
+  if (!o || !LIC.api) return;
+  st.textContent = "Чек жіберілуде…";
+  prepReceipt(file).then(function (blob) {
+    return getCode().then(function (code) {
+      var ctl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, 30000);
+      return fetch(LIC.api.replace(/\/+$/, "") + "/receipt?order=" + encodeURIComponent(o.id) + "&device=" + code, { method: "POST", headers: { "content-type": blob.type || file.type }, body: blob, signal: ctl.signal })
+        .then(function (r) { clearTimeout(t); return r.json().catch(function () { return {}; }).then(function (j) { j._http = r.status; return j; }); }, function (e) { clearTimeout(t); throw e; });
+    });
+  }).then(function (j) {
+    st.textContent = j.ok ? "Чек жіберілді ✓ Сатушы тексеріп, растайды."
+      : j._http === 429 ? "Чек бірнеше рет жіберілді. Растауды күтіңіз."
+      : j._http === 413 ? "Файл тым үлкен (6 МБ-қа дейін)"
+      : j._http === 415 ? "Тек сурет (JPG, PNG) немесе PDF жіберіңіз"
+      : j._http === 409 ? "Тапсырыс жабылған. Растауды күтіңіз"
+      : "Чекті жіберу мүмкін болмады. Кейінірек қайталаңыз";
+  }).catch(function () { st.textContent = "Интернет жоқ немесе сервер жауап бермеді"; });
+}
 function showKaspi(k) {
   payEl.textContent = "";
   var h = document.createElement("h3"); h.textContent = "Kaspi арқылы төлеу";
@@ -536,6 +573,15 @@ function showKaspi(k) {
   payEl.appendChild(kNote("Төлегеннен кейін сатушы растайды (әдетте бірнеше минут). Кілт осында автоматты түседі, қосымшаны жаппай күтуге немесе кейін қайта ашуға болады."));
   var st = document.createElement("div"); st.className = "kst"; st.textContent = "Растауды күтудеміз…";
   payEl.appendChild(st);
+  if (k.receipt) {
+    var rf = document.createElement("input"); rf.type = "file"; rf.accept = "image/*,application/pdf"; rf.hidden = true;
+    var rb = document.createElement("button"); rb.type = "button"; rb.id = "licRcp"; rb.textContent = "🧾 Чекті жіберу";
+    rb.style.cssText = "width:100%;margin-top:8px";
+    rb.addEventListener("click", function () { rf.click(); });
+    rf.addEventListener("change", function () { var f = rf.files && rf.files[0]; if (f) sendReceipt(f, st); rf.value = ""; });
+    payEl.appendChild(rb); payEl.appendChild(rf);
+    payEl.appendChild(kNote("Чектің суретін немесе PDF жіберсеңіз, сатушы төлемді тезірек растайды (міндетті емес)."));
+  }
   var row = document.createElement("div"); row.className = "row"; row.style.marginTop = "8px";
   var chk = document.createElement("button"); chk.type = "button"; chk.textContent = "Төлеп қойдым, тексеру";
   chk.addEventListener("click", function () {
