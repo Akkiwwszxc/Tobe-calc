@@ -1,6 +1,6 @@
 name = "tobe-license"
 main = "worker.js"
-compatibility_date = "2025-01-01"
+compatibility_date = "2026-11-22"
 
 [vars]
 # Төлем жүйесі: "kaspi" = клиент Kaspi-де сіздің нөміріңізге аударым жасайды, сіз /admin бетінде растайсыз.
@@ -13,7 +13,7 @@ KASPI_NAME = "Акберен Д"
 # Тестілік төлемге рұқсат. НАҒЫЗ САТЫЛЫМДА "0" болуы керек (Kaspi режимінде бұл параметр қолданылмайды).
 ALLOW_TEST_PAYMENTS = "0"
 # Баға пакеттері (price: теңге). Мына бағалар ҮЛГІ, өзіңіздікіне ауыстырыңыз.
-PLANS = '[{"id":"m1","months":1,"price":3000,"title":"1 ай"},{"id":"m3","months":3,"price":8000,"title":"3 ай"},{"id":"m12","months":12,"price":30000,"title":"12 ай"}]'
+PLANS = '[{"id":"m1","months":1,"price":25000,"title":"1 ай"},{"id":"m3","months":3,"price":60000,"title":"3 ай"},{"id":"m12","months":12,"price":100000,"title":"12 ай"}]'
 
 [[kv_namespaces]]
 binding = "ORDERS"
