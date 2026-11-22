@@ -21,6 +21,25 @@ const J = (o, s = 200) =>
 
 /* ---------- көмекші функциялар ---------- */
 function plans(env) { try { return JSON.parse(env.PLANS); } catch (e) { return []; } }
+// Жеңілдік: бұрын ақылы лицензия болған құрылғыға, мерзімі біткенге дейін және одан кейін N күн.
+// env.RENEW_DISCOUNT (%, әдепкі 20; 0 = өшірулі), env.RENEW_GRACE_DAYS (әдепкі 7).
+function discountPct(env) {
+  const v = env.RENEW_DISCOUNT == null || env.RENEW_DISCOUNT === "" ? 20 : Number(env.RENEW_DISCOUNT);
+  return Number.isFinite(v) ? Math.max(0, Math.min(90, Math.round(v))) : 0;
+}
+function graceDays(env) {
+  const v = env.RENEW_GRACE_DAYS == null || env.RENEW_GRACE_DAYS === "" ? 7 : Number(env.RENEW_GRACE_DAYS);
+  return Number.isFinite(v) ? Math.max(0, Math.min(365, Math.round(v))) : 7;
+}
+async function renewInfo(env, device) {
+  const pct = discountPct(env);
+  if (!pct || !DEVICE_RE.test(device)) return null;
+  const l = await env.ORDERS.get("lic:" + device, "json");
+  if (!l || !l.paid || !/^\d{4}-\d{2}-\d{2}$/.test(l.exp)) return null;
+  const until = addDays(l.exp, graceDays(env));
+  return iso(today()) <= until ? { pct, until } : null;
+}
+function priceWith(price, pct) { return pct ? Math.max(10, Math.round((price * (100 - pct)) / 100 / 10) * 10) : price; }
 // Қазақстан уақыты UTC+5: ығыстырылған күнде UTC геттерлері жергілікті күнді береді
 function today() { return new Date(Date.now() + 5 * 3600e3); }
 function iso(d) { return d.toISOString().slice(0, 10); }
@@ -158,7 +177,7 @@ async function fulfil(env, id, amount) {
   const key = await signKey(env, { v: 1, n: "", d: o.device, e: exp });
   o.status = "paid"; o.key = key; o.exp = exp; o.paidAt = Date.now();
   await env.ORDERS.put("ord:" + id, JSON.stringify(o), { expirationTtl: 30 * 86400 });
-  await env.ORDERS.put("lic:" + o.device, JSON.stringify({ key, exp }));
+  await env.ORDERS.put("lic:" + o.device, JSON.stringify({ key, exp, paid: true }));
   await env.ORDERS.delete("pend:" + id);
   await logKey(env, o.code ? "Kaspi " + o.code : "Төлем", o.device, exp, key);
   await env.ORDERS.delete("rev:" + o.device); // жаңа төлем = құрылғы қайта рұқсат алады
@@ -177,13 +196,16 @@ async function createOrder(req, env, u) {
   if (prov.manual) { // қайталап басқанда жаңа тапсырыс жасамай, ашық тапсырысты қайтарамыз
     const ex = await env.ORDERS.get("kp:" + device + ":" + plan.id);
     const eo = ex && ID_RE.test(ex) ? await env.ORDERS.get("ord:" + ex, "json") : null;
-    if (eo && eo.status === "pending") { const r0 = await prov.create(eo, env, u.origin); return J({ order: eo.id, payUrl: r0.payUrl, kaspi: r0.kaspi }); }
+    if (eo && eo.status === "pending" && eo.price === priceWith(plan.price, (await renewInfo(env, device) || { pct: 0 }).pct)) { const r0 = await prov.create(eo, env, u.origin); return J({ order: eo.id, payUrl: r0.payUrl, kaspi: r0.kaspi }); }
   }
-  const o = { id: rid(), device, plan: plan.id, months: plan.months, price: plan.price, status: "pending", created: Date.now() };
+  const ri = await renewInfo(env, device);
+  const price = priceWith(plan.price, ri ? ri.pct : 0);
+  const o = { id: rid(), device, plan: plan.id, months: plan.months, price, status: "pending", created: Date.now() };
+  if (ri) { o.discount = ri.pct; o.full = plan.price; }
   if (prov.manual) o.code = kcode();
   await env.ORDERS.put("ord:" + o.id, JSON.stringify(o), { expirationTtl: prov.ttl || 86400 });
   if (prov.manual) {
-    await env.ORDERS.put("pend:" + o.id, "1", { expirationTtl: prov.ttl, metadata: { device, plan: plan.id, months: o.months, price: o.price, code: o.code, created: o.created } });
+    await env.ORDERS.put("pend:" + o.id, "1", { expirationTtl: prov.ttl, metadata: { device, plan: plan.id, months: o.months, price: o.price, code: o.code, created: o.created, ...(o.discount ? { disc: o.discount } : {}) } });
     await env.ORDERS.put("kp:" + device + ":" + plan.id, o.id, { expirationTtl: 43200 });
   }
   const r = await prov.create(o, env, u.origin);
@@ -399,7 +421,9 @@ async function adminIssue(req, env) {
   const key = await signKey(env, { v: 1, n: name, d: device, e: exp });
   const cur = await env.ORDERS.get("lic:" + device, "json");
   const longer = cur && cur.exp > exp;
-  if (!longer) await env.ORDERS.put("lic:" + device, JSON.stringify({ key, exp }));
+  const paid = !!(cur && cur.paid) || !(Number.isInteger(b.days) && b.days >= 1 && b.days <= 366); // ай бойынша берілсе (қолма-қол төлем) — ақылы деп саналады, сынақ күндер — жоқ
+  if (!longer) await env.ORDERS.put("lic:" + device, JSON.stringify({ key, exp, ...(paid ? { paid: true } : {}) }));
+  else if (paid && !cur.paid) await env.ORDERS.put("lic:" + device, JSON.stringify({ ...cur, paid: true }));
   await logKey(env, name || "Қолмен", device, exp, key);
   await env.ORDERS.delete("rev:" + device);
   return J({ ok: true, key, exp, device, ...(longer ? { note: "longer_exists", current: cur.exp } : {}) });
@@ -466,7 +490,7 @@ function row(lab,val){var d=document.createElement("div");d.className="row";var 
 var seen=null;
 function draw(list){var el=$("list");el.textContent="";$("empty").textContent=list.length?"":"Растауды күтетін төлем жоқ.";
 list.forEach(function(o){var c=document.createElement("div");c.className="card";
-c.appendChild(row("Түсініктеме (код)",o.code||"—"));c.appendChild(row("Сома",Number(o.price).toLocaleString("ru-RU")+" ₸ · "+o.months+" ай"));
+c.appendChild(row("Түсініктеме (код)",o.code||"—"));c.appendChild(row("Сома",Number(o.price).toLocaleString("ru-RU")+" ₸ · "+o.months+" ай"+(o.disc?" · жеңілдік −"+o.disc+"%":"")));
 c.appendChild(row("Уақыты · құрылғы",fmt(o.created)+" · "+String(o.device||"").slice(0,4)+"-"+String(o.device||"").slice(4)));
 var r=document.createElement("div");r.style.cssText="display:flex;gap:8px;margin-top:10px";
 var ok=document.createElement("button");ok.type="button";ok.className="pr";ok.style.flex="1";ok.textContent="Растау";ok.onclick=function(){act("confirm",o)};
@@ -526,7 +550,11 @@ export default {
       if (p === "/" && !env.ASSETS) return J({ ok: true, service: "tobe-license" });
       if (p === "/share" && req.method === "POST") return await createShare(req, env);
       if (p.startsWith("/share/") && req.method === "GET") return await readShare(p.slice(7), env);
-      if (p === "/plans") return J({ mode: env.PROVIDER === "test" ? "test" : env.PROVIDER === "kaspi" ? "kaspi" : "live", plans: plans(env) });
+      if (p === "/plans") {
+        const ri = await renewInfo(env, (u.searchParams.get("device") || "").toUpperCase());
+        const pl = plans(env).map((x) => (ri ? { ...x, full: x.price, price: priceWith(x.price, ri.pct) } : x));
+        return J({ mode: env.PROVIDER === "test" ? "test" : env.PROVIDER === "kaspi" ? "kaspi" : "live", plans: pl, ...(ri ? { renew: ri } : {}) });
+      }
       if (p === "/order" && req.method === "POST") return await createOrder(req, env, u);
       if (p === "/pay/kaspi") return await kaspiPage(u, env);
       if (p === "/pay/kaspi/status") return await kaspiStatus(u, env);
