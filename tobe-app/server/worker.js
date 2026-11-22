@@ -196,7 +196,7 @@ async function createOrder(req, env, u) {
   if (prov.manual) { // қайталап басқанда жаңа тапсырыс жасамай, ашық тапсырысты қайтарамыз
     const ex = await env.ORDERS.get("kp:" + device + ":" + plan.id);
     const eo = ex && ID_RE.test(ex) ? await env.ORDERS.get("ord:" + ex, "json") : null;
-    if (eo && eo.status === "pending" && eo.price === priceWith(plan.price, (await renewInfo(env, device) || { pct: 0 }).pct)) { const r0 = await prov.create(eo, env, u.origin); return J({ order: eo.id, payUrl: r0.payUrl, kaspi: r0.kaspi }); }
+    if (eo && eo.status === "pending" && eo.price === priceWith(plan.price, (await renewInfo(env, device) || { pct: 0 }).pct)) { const r0 = await prov.create(eo, env, u.origin); if (r0.kaspi && await tgChat(env)) r0.kaspi.receipt = true; return J({ order: eo.id, payUrl: r0.payUrl, kaspi: r0.kaspi }); }
   }
   const ri = await renewInfo(env, device);
   const price = priceWith(plan.price, ri ? ri.pct : 0);
@@ -209,6 +209,7 @@ async function createOrder(req, env, u) {
     await env.ORDERS.put("kp:" + device + ":" + plan.id, o.id, { expirationTtl: 43200 });
   }
   const r = await prov.create(o, env, u.origin);
+  if (prov.manual) { await notifyOrder(env, o); if (r.kaspi && await tgChat(env)) r.kaspi.receipt = true; }
   return J({ order: o.id, payUrl: r.payUrl, kaspi: r.kaspi });
 }
 
@@ -376,27 +377,145 @@ async function adminOrders(req, env) {
   return J({ orders });
 }
 
+// Растау/қабылдамау: /admin беті де, Telegram батырмасы да осыны шақырады
+async function confirmOrder(env, id) {
+  const o = await env.ORDERS.get("ord:" + id, "json");
+  if (!o) return { error: "no_order", status: 404 };
+  if (o.status === "rejected") return { error: "rejected", status: 409 };
+  const f = await fulfil(env, id, null);
+  if (f.error) return { error: f.error, status: 400 };
+  await env.ORDERS.delete("pend:" + id);
+  return { ok: true, exp: f.order.exp, device: o.device, was: o.status };
+}
+async function rejectOrder(env, id) {
+  const o = await env.ORDERS.get("ord:" + id, "json");
+  if (!o) return { error: "no_order", status: 404 };
+  if (o.status === "paid") return { error: "paid", status: 409 };
+  o.status = "rejected";
+  await env.ORDERS.put("ord:" + id, JSON.stringify(o), { expirationTtl: 7 * 86400 });
+  await env.ORDERS.delete("pend:" + id);
+  await env.ORDERS.delete("kp:" + o.device + ":" + o.plan);
+  return { ok: true, device: o.device };
+}
 async function adminAct(req, env, action) {
   let b;
   try { b = await req.json(); } catch (e) { return J({ error: "bad_request" }, 400); }
   const id = String((b && b.order) || "");
   if (!ID_RE.test(id)) return J({ error: "bad_request" }, 400);
   if (!(await adminOk(env, req, action, id))) return J({ error: "auth" }, 401);
+  const r = action === "confirm" ? await confirmOrder(env, id) : await rejectOrder(env, id);
+  if (r.error) return J({ error: r.error }, r.status);
+  return J(action === "confirm" ? { ok: true, exp: r.exp, device: r.device } : { ok: true });
+}
+
+/* ---------- Telegram: хабарлама, чек, растау батырмалары ----------
+   Құпия: TELEGRAM_BOT_TOKEN (Cloudflare secret). Чат id /admin → «Telegram қосу» арқылы KV-ға түседі
+   (немесе env.TELEGRAM_CHAT_ID). Webhook қорғанысы: secret_token = sha256(token) туындысы. */
+async function tg(env, method, body, form) {
+  if (!env.TELEGRAM_BOT_TOKEN) return null;
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 8000);
+  try {
+    const r = await fetch("https://api.telegram.org/bot" + env.TELEGRAM_BOT_TOKEN + "/" + method, { method: "POST", headers: form ? undefined : { "content-type": "application/json" }, body: form ? body : JSON.stringify(body), signal: ctl.signal });
+    return await r.json();
+  } catch (e) { return null; } finally { clearTimeout(t); }
+}
+async function tgChat(env) {
+  if (!env.TELEGRAM_BOT_TOKEN) return "";
+  return String(env.TELEGRAM_CHAT_ID || (await env.ORDERS.get("cfg:tgchat")) || "");
+}
+async function tgSecret(env) {
+  const h = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode("tobe-tg|" + env.TELEGRAM_BOT_TOKEN)));
+  return Array.from(h, (x) => x.toString(16).padStart(2, "0")).join("").slice(0, 48);
+}
+const rub = (n) => Number(n).toLocaleString("ru-RU").replace(/\s/g, " ") + " ₸";
+function orderText(o, head) {
+  const d = String(o.device || "");
+  return (head || "🧾 Новый заказ Kaspi") + "\nКод в комментарии: " + o.code + "\nСумма: " + rub(o.price) + (o.discount ? " (скидка −" + o.discount + "%, продление)" : "") +
+    "\nСрок: " + o.months + " мес.\nУстройство: " + d.slice(0, 4) + "-" + d.slice(4);
+}
+const tgButtons = (id) => ({ inline_keyboard: [[{ text: "✅ Подтвердить", callback_data: "ok:" + id }, { text: "❌ Отклонить", callback_data: "no:" + id }]] });
+async function notifyOrder(env, o) {
+  try {
+    const chat = await tgChat(env);
+    if (!chat) return;
+    await tg(env, "sendMessage", { chat_id: chat, text: orderText(o), reply_markup: tgButtons(o.id) });
+  } catch (e) { /* хабарлама сәтсіз болса да тапсырыс жасала береді */ }
+}
+
+const RECEIPT_TYPES = { "image/jpeg": "photo", "image/png": "photo", "image/webp": "document", "application/pdf": "document" };
+const RECEIPT_MAX = 6 * 1024 * 1024;
+async function receipt(req, env, u) {
+  const id = u.searchParams.get("order") || "", device = (u.searchParams.get("device") || "").toUpperCase();
+  if (!ID_RE.test(id) || !DEVICE_RE.test(device)) return J({ error: "bad_request" }, 400);
   const o = await env.ORDERS.get("ord:" + id, "json");
-  if (!o) return J({ error: "no_order" }, 404);
-  if (action === "confirm") {
-    if (o.status === "rejected") return J({ error: "rejected" }, 409);
-    const f = await fulfil(env, id, null);
-    if (f.error) return J({ error: f.error }, 400);
-    await env.ORDERS.delete("pend:" + id);
-    return J({ ok: true, exp: f.order.exp, device: o.device });
-  }
-  if (o.status === "paid") return J({ error: "paid" }, 409);
-  o.status = "rejected";
-  await env.ORDERS.put("ord:" + id, JSON.stringify(o), { expirationTtl: 7 * 86400 });
-  await env.ORDERS.delete("pend:" + id);
-  await env.ORDERS.delete("kp:" + o.device + ":" + o.plan);
+  if (!o || o.device !== device) return J({ error: "no_order" }, 404);
+  if (o.status !== "pending") return J({ error: o.status }, 409);
+  const type = String(req.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
+  const kind = RECEIPT_TYPES[type];
+  if (!kind) return J({ error: "bad_type" }, 415);
+  const chat = await tgChat(env);
+  if (!chat) return J({ error: "tg_off" }, 503);
+  const buf = await req.arrayBuffer();
+  if (!buf.byteLength) return J({ error: "bad_request" }, 400);
+  if (buf.byteLength > RECEIPT_MAX) return J({ error: "too_large" }, 413);
+  const cnt = Number(await env.ORDERS.get("rc:" + id)) || 0;
+  if (cnt >= 3) return J({ error: "too_many" }, 429);
+  await env.ORDERS.put("rc:" + id, String(cnt + 1), { expirationTtl: 3 * 86400 });
+  const f = new FormData();
+  f.append("chat_id", chat);
+  f.append("caption", orderText(o, "🧾 Чек по заказу"));
+  f.append("reply_markup", JSON.stringify(tgButtons(id)));
+  f.append(kind, new Blob([buf], { type }), kind === "photo" ? "receipt" : type === "application/pdf" ? "receipt.pdf" : "receipt.webp");
+  const r = await tg(env, kind === "photo" ? "sendPhoto" : "sendDocument", f, true);
+  if (!r || !r.ok) return J({ error: "tg_fail" }, 502);
   return J({ ok: true });
+}
+
+// Telegram → бізге: «Подтвердить/Отклонить» батырмасы
+async function tgHook(req, env) {
+  if (!env.TELEGRAM_BOT_TOKEN || req.headers.get("x-telegram-bot-api-secret-token") !== (await tgSecret(env))) return J({ error: "forbidden" }, 403);
+  let up;
+  try { up = await req.json(); } catch (e) { return J({ ok: true }); }
+  const cq = up && up.callback_query;
+  if (!cq || typeof cq.data !== "string") return J({ ok: true });
+  const chat = await tgChat(env), from = String((cq.from && cq.from.id) || ""), m = /^(ok|no):([0-9a-f]{32})$/.exec(cq.data);
+  const answer = (text) => tg(env, "answerCallbackQuery", { callback_query_id: cq.id, text, show_alert: false });
+  if (!chat || from !== chat) { await answer("Нет доступа"); return J({ ok: true }); }
+  if (!m) { await answer("Неизвестная команда"); return J({ ok: true }); }
+  const r = m[1] === "ok" ? await confirmOrder(env, m[2]) : await rejectOrder(env, m[2]);
+  let label, text;
+  if (r.ok && r.was === "paid") { label = "✅ Уже подтверждён"; text = "Этот заказ уже подтверждён"; }
+  else if (r.ok) { label = m[1] === "ok" ? "✅ Подтверждено" : "❌ Отклонено"; text = m[1] === "ok" ? "Подтверждено: ключ выдан" : "Отклонено"; }
+  else if (r.error === "paid") { label = "✅ Уже подтверждён"; text = "Этот заказ уже подтверждён"; }
+  else if (r.error === "rejected") { label = "❌ Уже отклонён"; text = "Этот заказ уже отклонён"; }
+  else { label = "⚠️ Заказ не найден"; text = "Заказ не найден (устарел?)"; }
+  await answer(text);
+  if (cq.message && cq.message.message_id)
+    await tg(env, "editMessageReplyMarkup", { chat_id: chat, message_id: cq.message.message_id, reply_markup: { inline_keyboard: [[{ text: label, callback_data: "noop" }]] } });
+  return J({ ok: true });
+}
+
+// /admin: «Telegram қосу» — чат id табады, webhook орнатады, сынақ хабарлама жібереді
+async function tgSetup(req, env, u) {
+  if (!(await adminOk(env, req, "tgsetup", "-"))) return J({ error: "auth" }, 401);
+  if (!env.TELEGRAM_BOT_TOKEN) return J({ error: "no_token" });
+  const me = await tg(env, "getMe", {});
+  if (!me || !me.ok) return J({ error: "bad_token" });
+  let chat = String(env.TELEGRAM_CHAT_ID || ""), who = "";
+  if (!chat) {
+    await tg(env, "deleteWebhook", {});
+    const up = await tg(env, "getUpdates", { limit: 100, allowed_updates: ["message"] });
+    const msgs = ((up && up.result) || []).map((x) => x.message).filter((x) => x && x.chat && x.chat.type === "private");
+    const last = msgs[msgs.length - 1];
+    if (!last) return J({ error: "no_chat", bot: me.result.username });
+    chat = String(last.chat.id);
+    who = [last.chat.first_name, last.chat.last_name].filter(Boolean).join(" ") || last.chat.username || "";
+    await env.ORDERS.put("cfg:tgchat", chat);
+  }
+  const wh = await tg(env, "setWebhook", { url: u.origin + "/tg/hook", secret_token: await tgSecret(env), allowed_updates: ["callback_query"] });
+  if (!wh || !wh.ok) return J({ error: "webhook_fail" });
+  await tg(env, "sendMessage", { chat_id: chat, text: "✅ Бот подключён. Сюда будут приходить заказы и чеки с кнопками «Подтвердить / Отклонить»." });
+  return J({ ok: true, bot: me.result.username, who });
 }
 
 // Берілген кілттер журналы (жаңасы алдымен): metadata-да, сондықтан бір list жеткілікті
@@ -473,6 +592,7 @@ function adminPage() {
 <div class="lab">Мерзімі</div><select id="tm" style="width:100%;font:inherit;padding:9px;margin:4px 0 12px"><option value="d3">3 күн (сынақ)</option><option value="d7">7 күн</option><option value="m1">1 ай</option><option value="m3">3 ай</option><option value="m6">6 ай</option><option value="m12">12 ай</option></select>
 <button type="button" class="pr" id="go" style="width:100%">Кілт жасау</button><div id="ierr" class="bad" style="margin-top:8px"></div>
 <div id="res" hidden><p class="ok" id="resT"></p><textarea id="out" readonly></textarea><div style="display:flex;gap:8px;margin-top:8px"><button type="button" id="cpk">Көшіру</button><button type="button" id="shk">Бөлісу</button></div></div></div>
+<div class="card"><div class="lab">Telegram: тапсырыс келгенде хабарлама + чек + «Подтвердить/Отклонить» батырмалары</div><div style="display:flex;gap:8px;margin-top:6px;align-items:center"><button type="button" id="tgb">Telegram қосу</button><span id="tgm" class="note" style="margin:0"></span></div></div>
 <h1 style="margin-top:28px">Берілген кілттер</h1>
 <div class="card"><div class="lab">Құрылғының кілтін қайтарып алу (құрылғы коды)</div><div style="display:flex;gap:8px;margin-top:6px"><input id="rvd" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" style="flex:1;min-width:0;font:inherit;padding:9px"><button type="button" class="no" id="rvb" style="flex:none;white-space:nowrap">Қайтарып алу</button></div><div id="rerr" class="bad" style="margin-top:6px"></div></div>
 <div id="keys"><p class="note">Кілтті енгізгеннен кейін көрінеді.</p></div></main>
@@ -526,6 +646,10 @@ if(rv&&rv.length){var h=document.createElement("h1");h.style.marginTop="28px";h.
 rv.forEach(function(x){var c=document.createElement("div");c.className="card";c.appendChild(row("Құрылғы",fdev(x.device)+(x.t?" · "+fmt(x.t):"")));
 var b=document.createElement("button");b.type="button";b.style.marginTop="8px";b.textContent="Қалпына келтіру";b.onclick=function(){revDev("unrevoke",x.device)};c.appendChild(b);el.appendChild(c)})}}
 async function loadKeys(){if(!$("priv").value.trim())return;try{var j=await call("/admin/keys","keys","-");if(j._s===200)drawKeys(j.keys||[],j.revoked||[])}catch(e){}}
+$("tgb").onclick=async function(){var m=$("tgm");m.className="note";m.textContent="";if(!$("priv").value.trim()){m.className="bad";m.textContent="Алдымен жеке кілтті енгізіңіз";return}
+try{var j=await call("/admin/tg-setup","tgsetup","-",{});
+if(j.ok){m.className="ok";m.textContent="Қосылды ✓ @"+j.bot+(j.who?" · "+j.who:"")+". Ботқа сынақ хабарлама келді."}
+else{m.className="bad";m.textContent=j.error==="no_token"?"Cloudflare-де TELEGRAM_BOT_TOKEN secret жоқ":j.error==="bad_token"?"Токен қате":j.error==="no_chat"?"Алдымен @"+j.bot+" ботын ашып, Start басыңыз, қайта басыңыз":j.error==="webhook_fail"?"Webhook орнатылмады":j._s===401?"Жеке кілт сәйкес емес":"Қате ("+j._s+")"}}catch(e){m.className="bad";m.textContent="Желі қатесі"}};
 $("rvb").onclick=function(){var d=$("rvd").value.toUpperCase().replace(/[^0-9A-Z]/g,"");if(d.length!==8){$("rerr").textContent="Құрылғы коды 8 таңба болуы керек";return}
 if(!$("priv").value.trim()){$("rerr").textContent="Алдымен жеке кілтті енгізіңіз";return}$("rvd").value="";revDev("revoke",d)};
 $("go").onclick=async function(){var e=$("ierr");e.textContent="";$("res").hidden=true;
@@ -563,6 +687,9 @@ export default {
       if (p === "/admin/confirm" && req.method === "POST") return await adminAct(req, env, "confirm");
       if (p === "/admin/reject" && req.method === "POST") return await adminAct(req, env, "reject");
       if (p === "/admin/issue" && req.method === "POST") return await adminIssue(req, env);
+      if (p === "/admin/tg-setup" && req.method === "POST") return await tgSetup(req, env, u);
+      if (p === "/tg/hook" && req.method === "POST") return await tgHook(req, env);
+      if (p === "/receipt" && req.method === "POST") return await receipt(req, env, u);
       if (p === "/admin/keys" && req.method === "GET") return await adminKeys(req, env);
       if (p === "/admin/revoke" && req.method === "POST") return await adminRev(req, env, "revoke");
       if (p === "/admin/unrevoke" && req.method === "POST") return await adminRev(req, env, "unrevoke");
