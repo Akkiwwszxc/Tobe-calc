@@ -110,6 +110,12 @@ async function licenseOk(env, key) {
   if (!p || p.v !== 1 || typeof p.e !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(p.e)) return false;
   return p.e >= iso(today());
 }
+function keyDevice(key) {
+  try {
+    const p = JSON.parse(new TextDecoder().decode(b64uBytes(String(key || "").replace(/\s+/g, "").split(".")[0])));
+    return DEVICE_RE.test(p.d) ? p.d : "";
+  } catch (e) { return ""; }
+}
 function sid() {
   const al = "abcdefghijklmnopqrstuvwxyz0123456789", a = crypto.getRandomValues(new Uint8Array(12));
   return Array.from(a, (x) => al[x % 36]).join("");
@@ -155,6 +161,7 @@ async function fulfil(env, id, amount) {
   await env.ORDERS.put("lic:" + o.device, JSON.stringify({ key, exp }));
   await env.ORDERS.delete("pend:" + id);
   await logKey(env, o.code ? "Kaspi " + o.code : "Төлем", o.device, exp, key);
+  await env.ORDERS.delete("rev:" + o.device); // жаңа төлем = құрылғы қайта рұқсат алады
   return { order: o };
 }
 
@@ -205,6 +212,8 @@ async function restore(u, env) {
 /* ---------- 3D-сілтеме: сақтау және оқу ---------- */
 async function createShare(req, env) {
   if (!(await licenseOk(env, req.headers.get("x-license")))) return J({ error: "license" }, 401);
+  const kd = keyDevice(req.headers.get("x-license"));
+  if (kd && await env.ORDERS.get("rev:" + kd)) return J({ error: "license" }, 401);
   const text = await req.text();
   if (text.length > SHARE_MAX) return J({ error: "too_large" }, 413);
   let b;
@@ -392,13 +401,38 @@ async function adminIssue(req, env) {
   const longer = cur && cur.exp > exp;
   if (!longer) await env.ORDERS.put("lic:" + device, JSON.stringify({ key, exp }));
   await logKey(env, name || "Қолмен", device, exp, key);
+  await env.ORDERS.delete("rev:" + device);
   return J({ ok: true, key, exp, device, ...(longer ? { note: "longer_exists", current: cur.exp } : {}) });
+}
+
+async function adminRev(req, env, action) {
+  let b;
+  try { b = await req.json(); } catch (e) { return J({ error: "bad_request" }, 400); }
+  const device = String((b && b.device) || "").toUpperCase().replace(/[^0-9A-Z]/g, "");
+  if (!DEVICE_RE.test(device)) return J({ error: "bad_device" }, 400);
+  if (!(await adminOk(env, req, action, device))) return J({ error: "auth" }, 401);
+  if (action === "revoke") {
+    await env.ORDERS.put("rev:" + device, "1", { metadata: { t: Date.now() } });
+    await env.ORDERS.delete("lic:" + device); // /restore ескі кілтті қайтармасын
+  } else {
+    await env.ORDERS.delete("rev:" + device);
+  }
+  return J({ ok: true, device });
+}
+
+// Қосымша осыны сұрайды: қайтарып алынған құрылғы құлыпталады
+async function deviceStatus(u, env) {
+  const device = (u.searchParams.get("device") || "").toUpperCase();
+  if (!DEVICE_RE.test(device)) return J({ error: "bad_request" }, 400);
+  return J({ revoked: !!(await env.ORDERS.get("rev:" + device)) });
 }
 
 async function adminKeys(req, env) {
   if (!(await adminOk(env, req, "keys", "-"))) return J({ error: "auth" }, 401);
   const l = await env.ORDERS.list({ prefix: "iss:", limit: 100 });
-  return J({ keys: l.keys.map((k) => k.metadata).filter(Boolean) });
+  const rl = await env.ORDERS.list({ prefix: "rev:", limit: 200 });
+  const revoked = rl.keys.map((k) => ({ device: k.name.slice(4), t: (k.metadata && k.metadata.t) || 0 }));
+  return J({ keys: l.keys.map((k) => k.metadata).filter(Boolean), revoked });
 }
 
 function adminPage() {
@@ -415,7 +449,9 @@ function adminPage() {
 <div class="lab">Мерзімі</div><select id="tm" style="width:100%;font:inherit;padding:9px;margin:4px 0 12px"><option value="d3">3 күн (сынақ)</option><option value="d7">7 күн</option><option value="m1">1 ай</option><option value="m3">3 ай</option><option value="m6">6 ай</option><option value="m12">12 ай</option></select>
 <button type="button" class="pr" id="go" style="width:100%">Кілт жасау</button><div id="ierr" class="bad" style="margin-top:8px"></div>
 <div id="res" hidden><p class="ok" id="resT"></p><textarea id="out" readonly></textarea><div style="display:flex;gap:8px;margin-top:8px"><button type="button" id="cpk">Көшіру</button><button type="button" id="shk">Бөлісу</button></div></div></div>
-<h1 style="margin-top:28px">Берілген кілттер</h1><div id="keys"><p class="note">Кілтті енгізгеннен кейін көрінеді.</p></div></main>
+<h1 style="margin-top:28px">Берілген кілттер</h1>
+<div class="card"><div class="lab">Құрылғының кілтін қайтарып алу (құрылғы коды)</div><div style="display:flex;gap:8px;margin-top:6px"><input id="rvd" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" style="flex:1;min-width:0;font:inherit;padding:9px"><button type="button" class="no" id="rvb" style="flex:none;white-space:nowrap">Қайтарып алу</button></div><div id="rerr" class="bad" style="margin-top:6px"></div></div>
+<div id="keys"><p class="note">Кілтті енгізгеннен кейін көрінеді.</p></div></main>
 <script>var $=function(i){return document.getElementById(i)};
 try{var sv=localStorage.getItem("adm_priv");if(sv){$("priv").value=sv;$("rem").checked=true}}catch(e){}
 function b64u(a){var s="";for(var i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/,"")}
@@ -451,10 +487,23 @@ if(j._s===200){$("err").textContent="";await load()}else $("err").textContent=j.
 catch(e){$("err").textContent="Желі қатесі"}}
 function cpy(t,b,lab){var f=function(){var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy")}catch(e){}a.remove()};
 if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(f);else f();b.textContent="Көшірілді ✓";setTimeout(function(){b.textContent=lab},1500)}
-function drawKeys(a){var el=$("keys");el.textContent="";if(!a.length){var p=document.createElement("p");p.className="note";p.textContent="Әзірге жоқ.";el.appendChild(p);return}
-a.forEach(function(k){var c=document.createElement("div");c.className="card";var d=String(k.device||"");c.appendChild(row((k.name||"—")+" · "+fmt(k.created),d.slice(0,4)+"-"+d.slice(4)+" · "+k.exp+" дейін"));
-var b=document.createElement("button");b.type="button";b.style.marginTop="8px";b.textContent="Кілтті көшіру";b.onclick=function(){cpy(k.key,b,"Кілтті көшіру")};c.appendChild(b);el.appendChild(c)})}
-async function loadKeys(){if(!$("priv").value.trim())return;try{var j=await call("/admin/keys","keys","-");if(j._s===200)drawKeys(j.keys||[])}catch(e){}}
+function fdev(d){d=String(d||"");return d.slice(0,4)+"-"+d.slice(4)}
+async function revDev(kind,device){var q=kind==="revoke"?"Құрылғы "+fdev(device)+" кілтін қайтарып аласыз ба? Қосымша келесі байланыста құлыпталады.":"Құрылғы "+fdev(device)+" қайта рұқсат алады. Жалғастырасыз ба?";if(!confirm(q))return;
+$("rerr").textContent="";try{var j=await call("/admin/"+kind,kind,device,{device:device});if(j._s===200)loadKeys();else $("rerr").textContent=j.error==="bad_device"?"Құрылғы коды қате":"Қате ("+j._s+")"}catch(e){$("rerr").textContent="Желі қатесі"}}
+function drawKeys(a,rv){var el=$("keys");el.textContent="";var rs={};(rv||[]).forEach(function(x){rs[x.device]=1});
+if(!a.length){var p=document.createElement("p");p.className="note";p.textContent="Әзірге жоқ.";el.appendChild(p)}
+a.forEach(function(k){var c=document.createElement("div");c.className="card";var d=String(k.device||"");c.appendChild(row((k.name||"—")+" · "+fmt(k.created),fdev(d)+" · "+k.exp+" дейін"));
+var r=document.createElement("div");r.style.cssText="display:flex;gap:8px;margin-top:8px;align-items:center";
+var b=document.createElement("button");b.type="button";b.textContent="Кілтті көшіру";b.onclick=function(){cpy(k.key,b,"Кілтті көшіру")};r.appendChild(b);
+if(rs[d]){var s=document.createElement("span");s.className="bad";s.textContent="Қайтарып алынған";r.appendChild(s)}
+else{var x=document.createElement("button");x.type="button";x.className="no";x.textContent="Қайтарып алу";x.onclick=function(){revDev("revoke",d)};r.appendChild(x)}
+c.appendChild(r);el.appendChild(c)});
+if(rv&&rv.length){var h=document.createElement("h1");h.style.marginTop="28px";h.textContent="Қайтарып алынған құрылғылар";el.appendChild(h);
+rv.forEach(function(x){var c=document.createElement("div");c.className="card";c.appendChild(row("Құрылғы",fdev(x.device)+(x.t?" · "+fmt(x.t):"")));
+var b=document.createElement("button");b.type="button";b.style.marginTop="8px";b.textContent="Қалпына келтіру";b.onclick=function(){revDev("unrevoke",x.device)};c.appendChild(b);el.appendChild(c)})}}
+async function loadKeys(){if(!$("priv").value.trim())return;try{var j=await call("/admin/keys","keys","-");if(j._s===200)drawKeys(j.keys||[],j.revoked||[])}catch(e){}}
+$("rvb").onclick=function(){var d=$("rvd").value.toUpperCase().replace(/[^0-9A-Z]/g,"");if(d.length!==8){$("rerr").textContent="Құрылғы коды 8 таңба болуы керек";return}
+if(!$("priv").value.trim()){$("rerr").textContent="Алдымен жеке кілтті енгізіңіз";return}$("rvd").value="";revDev("revoke",d)};
 $("go").onclick=async function(){var e=$("ierr");e.textContent="";$("res").hidden=true;
 var d=$("dv").value.toUpperCase().replace(/[^0-9A-Z]/g,"");if(d.length!==8){e.textContent="Құрылғы коды 8 таңба болуы керек";return}
 if(!$("priv").value.trim()){e.textContent="Алдымен жеке кілтті енгізіңіз";return}
@@ -487,6 +536,9 @@ export default {
       if (p === "/admin/reject" && req.method === "POST") return await adminAct(req, env, "reject");
       if (p === "/admin/issue" && req.method === "POST") return await adminIssue(req, env);
       if (p === "/admin/keys" && req.method === "GET") return await adminKeys(req, env);
+      if (p === "/admin/revoke" && req.method === "POST") return await adminRev(req, env, "revoke");
+      if (p === "/admin/unrevoke" && req.method === "POST") return await adminRev(req, env, "unrevoke");
+      if (p === "/status" && req.method === "GET") return await deviceStatus(u, env);
       if (p === "/claim") return await claim(u, env);
       if (p === "/restore") return await restore(u, env);
       if (p === "/pay/test" && testOn(env)) return testPage(u);
