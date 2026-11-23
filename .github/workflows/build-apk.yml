@@ -1,8 +1,8 @@
 name: Build APK
+# APK тек қолмен жиналады: Actions → Build APK → Run workflow.
+# (Файл жүктегенде автоматты жиналмайды, сондықтан iPhone/сервер жаңартулары APK-ны қозғамайды.)
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 jobs:
   apk:
     runs-on: ubuntu-latest
