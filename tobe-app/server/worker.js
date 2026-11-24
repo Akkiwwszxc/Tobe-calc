@@ -207,6 +207,18 @@ async function createOrder(req, env, u) {
   if (prov.manual) {
     await env.ORDERS.put("pend:" + o.id, "1", { expirationTtl: prov.ttl, metadata: { device, plan: plan.id, months: o.months, price: o.price, code: o.code, created: o.created, ...(o.discount ? { disc: o.discount } : {}) } });
     await env.ORDERS.put("kp:" + device + ":" + plan.id, o.id, { expirationTtl: 43200 });
+    // Бір мезгілде келген қос сұраныс (қос басу): kp-ны соңғы жазған ғана қалады, қалғаны өз тапсырысын өшіріп, жеңімпаздікін қайтарады
+    await new Promise((ok) => setTimeout(ok, 300));
+    const win = await env.ORDERS.get("kp:" + device + ":" + plan.id);
+    if (win && win !== o.id && ID_RE.test(win)) {
+      const wo = await env.ORDERS.get("ord:" + win, "json");
+      if (wo && wo.status === "pending") {
+        await env.ORDERS.delete("ord:" + o.id); await env.ORDERS.delete("pend:" + o.id);
+        const rw = await prov.create(wo, env, u.origin);
+        if (rw.kaspi && await tgChat(env)) rw.kaspi.receipt = true;
+        return J({ order: wo.id, payUrl: rw.payUrl, kaspi: rw.kaspi });
+      }
+    }
   }
   const r = await prov.create(o, env, u.origin);
   if (prov.manual) { await notifyOrder(env, o); if (r.kaspi && await tgChat(env)) r.kaspi.receipt = true; }
