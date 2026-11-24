@@ -1119,7 +1119,10 @@ function resumeKaspi() {
   });
 }
 
+var paying = false;
 async function pay(id) {
+  if (paying) return; // қос басудан қорғаныс: тапсырыс бір рет қана жасалады
+  paying = true;
   setMsg("Төлем беті ашылуда…", true);
   try {
     var code = await getCode();
@@ -1137,6 +1140,8 @@ async function pay(id) {
     startPoll();
   } catch (e) {
     setMsg("Серверге қосылу мүмкін болмады. Интернетті тексеріңіз", false);
+  } finally {
+    paying = false;
   }
 }
 
